@@ -2,19 +2,39 @@
 <html>
 <head>
 <style>
+    #info {
+        display: inline-block;
+        width: 400px;
+        margin: 0;
+    }
+    p {
+        margin-bottom: 0;
+    }
     canvas {
         margin: 0;
         padding: 0;
+        display: block;
+    }
+    #plot_canvas {
+        display: inline-block;
     }
 </style>
 </head>
 <body>
 
-<canvas id="canvas" width="1000" height="400" style="border:1px solid #c3c3c3;">
+<canvas id="plot_canvas" width="600" height="600" style="border:1px solid #c3c3c3;">
 Your browser does not support the HTML5 canvas tag.
 </canvas>
 
-<p>^click^ and Mandelbrot will show you the bumps in his ride, provided he doesn't fly into space first.</p>
+<div id="info">
+    <p>Drag your mouse to fly.</p>
+    <p>Mandelbrot will show you his ride.</p>
+</div>
+
+<canvas id="dist_canvas" width="1000" height="300" style="border:1px solid #c3c3c3;">
+Your browser does not support the HTML5 canvas tag.
+</canvas>
+
 <script src="converge.js"></script>
 
 </body>

@@ -59,42 +59,107 @@ var MandelSeq = function (re, im, length) {
     this.length = this.z_hist.length;
 };
 
-var render = function (newSeq) {
-    var canvas = document.getElementById("canvas");
+var plotDist = function (newSeq, size) {
+    size = size || 3;
+    var prefix = 'dist';
+
+    var canvas = document.getElementById(prefix + "_canvas");
     var ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "hsl(0,0%,100%)";
+
+    ctx.fillStyle = "rgba(255,255,255,0.15)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     var maxH = 0.0,
         i;
     for (i = 0; i < newSeq.length; i++) {
-        maxH = Math.max(maxH, newSeq.dist_hist[i]);
+        maxH = Math.max(maxH, newSeq[prefix + '_hist'][i]);
     }
     maxH *= 1.2
         
-    var x_div = Math.floor(canvas.width / newSeq.length);
+    var div = Math.floor(canvas.width / newSeq.length);
 
-    // render new in dark gray
-    ctx.fillStyle = "hsl(0,0%,30%)";
+    var redMax = 100;
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
     for (i = 0; i < newSeq.length; i++) {
-        var dist = newSeq.dist_hist[i];
-        var x = Math.floor(i * x_div);
-        var y = Math.floor(canvas.height - canvas.height * dist / maxH);
+        var val = newSeq[prefix + '_hist'][i];
+        var x = Math.floor(i * div);
+        var y = Math.floor(canvas.height - canvas.height * val / maxH);
 
-        ctx.fillRect(x, y, x_div, canvas.height);
+        var red = Math.floor(redMax - redMax * i / newSeq.length);
+        ctx.fillStyle = "rgba(" + red + ",0,0,0.5)";
+        ctx.fillRect(x - size / 2, y - size / 2, div, size);
     }
 };
 
-var newBounded = function () {
-    var m = new MandelSeq(Math.random() * 2, Math.random() * 2);
-    while (m.divergent) m = new MandelSeq(Math.random() * 2, Math.random() * 2);
-    console.log(m);
-    render(m);
+var plotSeq = function (newSeq, size) {
+    size = size || 4;
+
+    var canvas = document.getElementById("plot_canvas");
+    var ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "rgba(255,255,255,0.01)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // scale from [-2,-2],[2,2] to [0,height],[width,0]
+    var xScale = function (x) {
+        return Math.floor((x + 2) * canvas.width / 4);
+    };
+    var yScale = function (y) {
+        return Math.floor(canvas.height - (y + 2) * canvas.height / 4);
+    };
+
+    // plot c value
+    var x = xScale(newSeq.c.re);
+    var y = yScale(newSeq.c.im);
+    ctx.fillStyle = "rgba(0,100,30,0.4)"
+    ctx.fillRect(x - size / 2, y - size / 2, size, size);
+
+    var redMax = 60;
+    for (i = 0; i < newSeq.length; i++) {
+
+        var z = newSeq.z_hist[i];
+        x = Math.floor(xScale(z.re));
+        y = Math.floor(yScale(z.im));
+
+        var red = Math.floor(redMax - redMax * i / newSeq.length);
+        ctx.fillStyle = "rgba(" + red + ",0,0,0.1)";
+        ctx.fillRect(x - size / 2, y - size / 2, size, size);
+    }
+}
+
+var render = function (newSeq) {
+    plotDist(newSeq);
+    plotSeq(newSeq);
 };
 
-document.getElementById("canvas").onclick = function () {
-    newBounded();
-}
+var newBounded = function (x, y) {
+    if (x === undefined) x = Math.random() * 4 - 2.0;
+    if (y === undefined) x = Math.random() * 4 - 2.0;
+
+    var m = new MandelSeq(x, y);
+    //while (m.divergent) m = new MandelSeq(Math.random() * 2, Math.random() * 2);
+    render(m, 2);
+};
+
+var getMousePos = function (evt, x_min, x_max, y_min, y_max) {
+    var canv = document.getElementById("plot_canvas");
+    var rect = canv.getBoundingClientRect();
+
+    var x = evt.clientX - rect.left;
+    var y = evt.clientY - rect.top;
+
+    var trans_x = (x_max - x_min) * x / canv.width + x_min;
+    var trans_y = (y_max - y_min) * (canv.height - y) / canv.height+ y_min;
+
+    return {
+        x: trans_x,
+        y: trans_y
+    };
+};
+
+document.getElementById("plot_canvas").addEventListener('mousemove', function (event) {
+    var mouse = getMousePos(event, -2.0, 2.0, -2.0, 2.0);
+    newBounded(mouse.x, mouse.y);
+});
 
 newBounded();
