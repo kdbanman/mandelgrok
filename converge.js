@@ -63,6 +63,8 @@ var render = function (newSeq) {
     var canvas = document.getElementById("canvas");
     var ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "hsl(0,0%,100%)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     var maxH = 0.0,
         i;
@@ -91,7 +93,7 @@ var newBounded = function () {
     render(m);
 };
 
-window.onkeypress = function (event) {
+document.getElementById("canvas").onclick = function () {
     newBounded();
 }
 
