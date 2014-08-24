@@ -1,69 +1,7 @@
-// Z is a complex coord.
-// Multiply with another with Z.mult(z).
-// Calculate distance with Z.dist(z).
-// Calculate it's magnitude with Z.mag().
-// Generate it's Mandelbrot successor with Z.next(c).
-var Z = function (re, im) {
-    this.re = re;
-    this.im = im;
-};
-
-Z.prototype.mult = function (z) {
-    return new Z(this.re * z.re - this.im * z.im,
-                 this.re * z.im + this.im * z.re);
-};
-
-Z.prototype.dist = function (z) {
-    return Math.sqrt(
-        (this.re - z.re) * (this.re - z.re) + 
-        (this.im - z.im) * (this.im - z.im)
-    );
-};
-
-Z.prototype.mag = function () {
-    return this.dist(new Z(0,0));
-}
-
-Z.prototype.next = function (c) {
-    var next_re = this.re * this.re - this.im * this.im + c.re;
-    var next_im = 2 * this.re * this.im + c.im;
-
-    return new Z(next_re, next_im);
-};
-
-// Mandelbrot Sequence generator
-var MandelSeq = function (re, im, length) {
-    length = length || 500;
-    this.length = length;
-
-    // define constant coordinate
-    this.c = new Z(re, im)
-
-    // track sequence history
-    this.z_hist = [new Z(0,0)];     // history of z
-    this.dist_hist = [0];  // history of z distance from c
-    this.delta_hist = [0]; // history of z_n distance from z_n-1
-
-    var curr = this.z_hist[this.z_hist.length - 1];
-    while (this.z_hist.length < length && curr.mag() < 2) {
-        curr = this.z_hist[this.z_hist.length - 1];
-        var next = curr.next(this.c);
-
-        this.z_hist.push(next);
-        this.dist_hist.push(this.c.dist(next));
-        this.delta_hist.push(curr.dist(next));
-    }
-
-    this.divergent = this.z_hist.length < length;
-    this.escaped = this.divergent ? this.z_hist.length : undefined;
-    this.length = this.z_hist.length;
-};
-
 var plotDist = function (newSeq, size) {
     size = size || 3;
-    var prefix = 'dist';
 
-    var canvas = document.getElementById(prefix + "_canvas");
+    var canvas = document.getElementById('dist_canvas');
     var ctx = canvas.getContext("2d");
 
     ctx.fillStyle = "rgba(255,255,255,0.15)";
@@ -72,22 +10,22 @@ var plotDist = function (newSeq, size) {
     var maxH = 0.0,
         i;
     for (i = 0; i < newSeq.length; i++) {
-        maxH = Math.max(maxH, newSeq[prefix + '_hist'][i]);
+        maxH = Math.max(maxH, newSeq['dist_hist'][i]);
     }
     maxH *= 1.2
         
-    var div = Math.floor(canvas.width / newSeq.length);
+    var div = canvas.height/ newSeq.length;
 
     var redMax = 100;
     ctx.fillStyle = "rgba(0,0,0,0.5)";
     for (i = 0; i < newSeq.length; i++) {
-        var val = newSeq[prefix + '_hist'][i];
-        var x = Math.floor(i * div);
-        var y = Math.floor(canvas.height - canvas.height * val / maxH);
+        var val = newSeq['dist_hist'][i];
+        var x = Math.floor(canvas.width * val / maxH);
+        var y = Math.floor(i * div);
 
         var red = Math.floor(redMax - redMax * i / newSeq.length);
         ctx.fillStyle = "rgba(" + red + ",0,0,0.5)";
-        ctx.fillRect(x - size / 2, y - size / 2, div, size);
+        ctx.fillRect(x - size / 2, y - size / 2, size, Math.max(div, size));
     }
 };
 
@@ -157,9 +95,27 @@ var getMousePos = function (evt, x_min, x_max, y_min, y_max) {
     };
 };
 
+// fill container divs with canvas
+var resize = function () {
+
+    var fill = function (canv, cont) {
+        canv.height(cont.height())
+        canv.attr('height', cont.height());
+
+        canv.width(cont.width());
+        canv.attr('width', cont.width());
+    };
+
+    fill($('#plot_canvas'), $('#plot'));
+    fill($('#dist_canvas'), $('#dist'));
+};
+
 document.getElementById("plot_canvas").addEventListener('mousemove', function (event) {
     var mouse = getMousePos(event, -2.0, 2.0, -2.0, 2.0);
     newBounded(mouse.x, mouse.y);
 });
 
+$(window).resize(resize);
+
+resize();
 newBounded();
