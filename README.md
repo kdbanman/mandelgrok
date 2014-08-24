@@ -1,6 +1,9 @@
 ### TODO
 
-- animate with MRU list of MandelSeq rather than CSS alpha hacks
+- animate plotSeq with MRU list of MandelSeq rather than CSS alpha hacks
+    - mousemove based
+        - each position in queue has static display props
+        - queue positions dynamically filled
 
 - render mandelbrot set under animation
     - use sequence properties for visual rep (research signal analysis)

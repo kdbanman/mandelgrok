@@ -1,32 +1,55 @@
-var plotDist = function (newSeq, size) {
-    size = size || 3;
+// GLOBAL STATE
+var newSeqs = new MRUQueue(40);
+
+// APP FUNCTIONS
+var plotDist = function (newSeqs) {
 
     var canvas = document.getElementById('dist_canvas');
     var ctx = canvas.getContext("2d");
 
-    ctx.fillStyle = "rgba(255,255,255,0.15)";
+    // start with dark grey background
+    ctx.fillStyle = "#111";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    var maxH = 0.0,
-        i;
-    for (i = 0; i < newSeq.length; i++) {
-        maxH = Math.max(maxH, newSeq['dist_hist'][i]);
-    }
-    maxH *= 1.2
+    newSeqs.forEach(function (newSeq, age) {
+        // fade with age, sharply at first
+        var alpha = Math.pow(1.0 - 0.9 * age / newSeqs.length, 8); 
+        var size = age === 0 ? 4 : 3;
+
+        if (age === 0) {
+            ctx.strokeStyle = 'hsl(320,100%,20%)';
+        }
         
-    var div = canvas.height/ newSeq.length;
+        var maxDist = 0.0,
+            maxDelta = 0.0,
+            i;
+        for (i = 0; i < newSeq.length; i++) {
+            maxDist = Math.max(maxDist, newSeq.getDist(i));
+            maxDelta = Math.max(maxDelta, newSeq.getDelta(i));
+        }
+        if (maxDist === 0) maxDist = 1;
+        if (maxDelta === 0) maxDelta = 1;
+            
+        var div = canvas.height/ newSeq.length;
 
-    var redMax = 100;
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
-    for (i = 0; i < newSeq.length; i++) {
-        var val = newSeq['dist_hist'][i];
-        var x = Math.floor(canvas.width * val / maxH);
-        var y = Math.floor(i * div);
+        for (i = 0; i < newSeq.length; i++) {
+            var val = newSeq.getDist(i);
+            var x = Math.floor(canvas.width * val / maxDist * 0.8);
+            var y = Math.floor(i * div);
 
-        var red = Math.floor(redMax - redMax * i / newSeq.length);
-        ctx.fillStyle = "rgba(" + red + ",0,0,0.5)";
-        ctx.fillRect(x - size / 2, y - size / 2, size, Math.max(div, size));
-    }
+            ctx.fillStyle = 'hsla(0,50%,80%,' + alpha + ')';
+
+            ctx.fillRect(x - size / 2,
+                         y - size / 2,
+                         size,
+                         Math.max(div, size));
+            if (age === 0)
+                ctx.strokeRect(x - size / 2,
+                               y - size / 2,
+                               size,
+                               Math.max(div, size));
+        }
+    });
 };
 
 var plotSeq = function (newSeq, size) {
@@ -35,6 +58,8 @@ var plotSeq = function (newSeq, size) {
     var canvas = document.getElementById("plot_canvas");
     var ctx = canvas.getContext("2d");
 
+    //TODO if boundaries unchanged && canvas saved, reset canvas state
+    //     else render mandelbrot and save canvas
     ctx.fillStyle = "rgba(255,255,255,0.01)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -65,18 +90,17 @@ var plotSeq = function (newSeq, size) {
     }
 }
 
-var render = function (newSeq) {
-    plotDist(newSeq);
-    plotSeq(newSeq);
+var render = function (newSeqs) {
+    plotDist(newSeqs);
+    plotSeq(newSeqs.queue[0]);
 };
 
 var newBounded = function (x, y) {
     if (x === undefined) x = Math.random() * 4 - 2.0;
     if (y === undefined) x = Math.random() * 4 - 2.0;
 
-    var m = new MandelSeq(x, y);
-    //while (m.divergent) m = new MandelSeq(Math.random() * 2, Math.random() * 2);
-    render(m, 2);
+    newSeqs.push(new MandelSeq(x, y));
+    render(newSeqs);
 };
 
 var getMousePos = function (evt, x_min, x_max, y_min, y_max) {
@@ -110,6 +134,7 @@ var resize = function () {
     fill($('#dist_canvas'), $('#dist'));
 };
 
+// EVENT LISTENERS
 document.getElementById("plot_canvas").addEventListener('mousemove', function (event) {
     var mouse = getMousePos(event, -2.0, 2.0, -2.0, 2.0);
     newBounded(mouse.x, mouse.y);
@@ -117,5 +142,6 @@ document.getElementById("plot_canvas").addEventListener('mousemove', function (e
 
 $(window).resize(resize);
 
+// INIT BEHAVIOUR
 resize();
-newBounded();
+newBounded(0,0);

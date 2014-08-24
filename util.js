@@ -59,3 +59,44 @@ var MandelSeq = function (re, im, length) {
     this.length = this.z_hist.length;
 };
 
+MandelSeq.prototype.getDist = function (i) {
+    return this.dist_hist[i];
+}
+
+MandelSeq.prototype.getDelta = function (i) {
+    return this.delta_hist[i];
+}
+
+// queue structure that pushes FILO, and iterates last-to-first
+var MRUQueue = function (len) {
+    this.maxLength = len;
+    this.length = 0;
+    this.queue = [];
+}
+
+MRUQueue.prototype.push = function (newSeq) {
+    // if the queue is full, then shift queue towards end
+    if (this.queue.length === this.maxLength) {
+        // walk from the final (oldest) element to the second newest element
+        for (var i = this.queue.length - 1; i > 0; i--) {
+            // replace the current element with the newer element
+            this.queue[i] = this.queue[i - 1];
+        }
+        // insert new sequence
+        this.queue[0] = newSeq;
+    } else {
+        // queue is not full, so just prepend the sequence to the queue
+        this.queue.unshift(newSeq);
+    }
+
+    this.length = this.queue.length;
+
+    return this;
+}
+
+MRUQueue.prototype.forEach = function (fun) {
+    for (var i = this.queue.length - 1; i >= 0; i--) {
+        fun(this.queue[i], i);
+    }
+}
+
