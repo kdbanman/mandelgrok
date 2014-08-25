@@ -1,5 +1,8 @@
 // GLOBAL STATE
+
+// sequences to plot
 var newSeqs = new MRUQueue(30),
+// plot boundaries for zooming
     x_min = -2,
     x_max = 2,
     y_min = -2,
@@ -77,68 +80,67 @@ var plotSeq = (function () {
         }
     };
 
-    return function (newSeqs) {
+    return function (newSeqs, forceRedraw) {
         var canvas = document.getElementById("plot_canvas");
         var ctx = canvas.getContext("2d");
 
         // if boundaries changed or saved image exists
         // render mandelbrot and save canvas
-        if (boundsChanged() || currImg === undefined) {
-            currImg = renderMandelbrot(canvas, boundary, 2);
+        if (boundsChanged() || currImg === undefined || forceRedraw) {
+            currImg = renderMandelbrot(canvas, boundary, 4);
         } else {
             // restore canvas image
             ctx.putImageData(currImg, 0,0);
         }
 
-        // scale from [-2,-2],[2,2] to [0,height],[width,0]
+        // scale from [x_min,y_min],[x_max,y_max] to [0,height],[width,0]
         var xScale = function (x) {
-            return Math.floor((x + 2) * canvas.width / 4);
+            return Math.floor((x - x_min) * canvas.width / (x_max - x_min));
         };
         var yScale = function (y) {
-            return Math.floor(canvas.height - (y + 2) * canvas.height / 4);
+            return Math.floor(canvas.height - (y - y_min) * canvas.height / (y_max - y_min));
         };
 
         newSeqs.forEach(function (newSeq, age) {
             // fade with age, sharply at first
             var alpha = Math.pow(1.0 - 0.9 * age / newSeqs.length, 8); 
-            alpha = Math.max(0.001, alpha);
+            alpha = Math.max(0.1, alpha);
 
             // newest sequence is slightly larger and outlined
             var size = age === 0 ? 4 : 3;
             if (age === 0) {
-                ctx.strokeStyle = 'hsl(320,100%,20%)';
+                ctx.strokeStyle = 'hsl(320,80%,20%)';
             }
 
-            // plot c value
-            var x = xScale(newSeq.c.re);
-            var y = yScale(newSeq.c.im);
-            ctx.fillStyle = "rgba(0,100,30,0.4)";
-            ctx.fillRect(x - size / 2, y - size / 2, size, size);
-
-            var redMax = 60;
             for (i = 0; i < newSeq.length; i++) {
+                // do not render stable trails
+                if (newSeq.getDelta(i) > (x_max - x_min) / canvas.width / 2) {
+                    var z = newSeq.z_hist[i];
+                    x = Math.floor(xScale(z.re));
+                    y = Math.floor(yScale(z.im));
 
-                var z = newSeq.z_hist[i];
-                x = Math.floor(xScale(z.re));
-                y = Math.floor(yScale(z.im));
+                    // do not render off canvas
+                    if (x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
+                        ctx.fillStyle = 'hsla(0,50%,80%,' + alpha + ')';
 
-                var red = Math.floor(redMax - redMax * i / newSeq.length);
-                ctx.fillStyle = 'rgba(' + red + ',0,0,' + alpha + ')';
-
-                ctx.fillRect(x - size / 2, y - size / 2, size, size);
+                        ctx.fillRect(x - size / 2, y - size / 2, size, size);
+                        if (age === 0)
+                            ctx.strokeRect(x - size / 2, y - size / 2, size, size);
+                    }
+                }
             }
         });
     };
 })()
 
-var render = function (newSeqs) {
+var render = function (newSeqs, forceRedraw) {
     plotDist(newSeqs);
-    plotSeq(newSeqs);
+    plotSeq(newSeqs, forceRedraw);
 };
 
 var newBounded = function (x, y) {
-    if (x === undefined) x = Math.random() * 4 - 2.0;
-    if (y === undefined) x = Math.random() * 4 - 2.0;
+    if (x === undefined) x = x_min + (x_max - x_min) / 2;
+    if (y === undefined) y = y_min + (y_max - y_min) / 2;
 
     newSeqs.push(new MandelSeq(x, y));
     render(newSeqs);
@@ -173,16 +175,37 @@ var resize = function () {
 
     fill($('#plot_canvas'), $('#plot'));
     fill($('#dist_canvas'), $('#dist'));
+
+    render(newSeqs, true);
 };
 
 // EVENT LISTENERS
 document.getElementById("plot_canvas").addEventListener('mousemove', function (event) {
-    var mouse = getMousePos(event, -2.0, 2.0, -2.0, 2.0);
+    var mouse = getMousePos(event, x_min, x_max, y_min, y_max);
     newBounded(mouse.x, mouse.y);
+});
+
+$("#plot_canvas").bind('mousewheel', function (e) {
+    var event = e.originalEvent;
+
+    var zoom = event.wheelDelta / 35;
+    var newLength;
+    if (event.wheelDelta > 0) {
+        newLength = (x_max - x_min) / zoom;
+    } else {
+        zoom = -1 * zoom;
+        newLength = (x_max - x_min) * zoom;
+    }
+
+    var newCenter = getMousePos(event, x_min, x_max, y_min, y_max);
+    x_min = newCenter.x - newLength / 2;
+    x_max = newCenter.x + newLength / 2;
+    y_min = newCenter.y - newLength / 2;
+    y_max = newCenter.y + newLength / 2;
 });
 
 $(window).resize(resize);
 
 // INIT BEHAVIOUR
 resize();
-newBounded(0,0);
+render(newSeqs, true);

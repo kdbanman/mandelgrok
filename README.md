@@ -1,21 +1,14 @@
 ### TODO
 
-- animate plotSeq with MRU list of MandelSeq rather than CSS alpha hacks
-    - DONT tweak colors yet, wait until the set is rendered.  that will be more important
-    - mousemove based
-        - each position in queue has static display props
-        - queue positions dynamically filled
+- smoothly scroll into/out of image data rather than recomputing every time
+    - research map zoom tile load/cache
+    - use hash in url to link to zoom level and center
 
-- render mandelbrot set under animation
-    - use sequence properties for visual rep (research signal analysis)
-        - visual diff should correspond to diff seq nature
-        - seq properties are ideally computed as the sequence is generated
+- use webworkers or webGL to recompute without hanging UI thread
 
-- tweak sequence render colors
-    - c value
-    - z
-    - age
+- find breakpoint for BigDecimal usage and sequence length increase
+    - don't try and parametrize this.  just dig in and hardcode based on what you see
 
-- parametrize with global max/min variables
+- accept tiles from clients by PUT into server db
 
-- control max/min with mousewheel
+- try to get tiles from server before computing them
