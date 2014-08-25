@@ -84,7 +84,7 @@ var plotSeq = (function () {
         // if boundaries changed or saved image exists
         // render mandelbrot and save canvas
         if (boundsChanged() || currImg === undefined) {
-            currImg = renderMandelbrot(canvas, boundary, 4);
+            currImg = renderMandelbrot(canvas, boundary, 2);
         } else {
             // restore canvas image
             ctx.putImageData(currImg, 0,0);

@@ -117,19 +117,53 @@ var renderMandelbrot = function (canvas, boundary, pixelSize) {
         return (canvas.height - y) / canvas.height * (y_max - y_min) + y_min;
     }
 
+    var max_divDelta = max_convDelta = 0;
     var coords = [];
     for (var i = 0; i < canvas.width; i += pixelSize) {
         for (var j = 0; j < canvas.height; j += pixelSize) {
-            coords.push(new MandelSeq(xPos(i), yPos(j)));
-            
-            if (coords[coords.length - 1].divergent) {
-                ctx.fillStyle = '#ddd';
-            } else {
-                ctx.fillStyle = '#fcf';
+            var coord = new MandelSeq(xPos(i), yPos(j));
+
+            coord.i = i;
+            coord.j = j;
+
+            coord.deltaSum = 0;
+            for (var n = 0; n < coord.length; n++) {
+                coord.deltaSum += coord.getDelta(n);
             }
-            ctx.fillRect(i, j, pixelSize, pixelSize)
+            if (coord.divergent) {
+                max_divDelta  = Math.max(coord.deltaSum, max_divDelta);
+            } else {
+                max_convDelta = Math.max(coord.deltaSum, max_convDelta);
+            }
+
+            coords.push(coord);
         }
     }
+
+    coords.forEach(function (coord) {
+        var stability,
+            sat,
+            val;
+        if (coord.divergent) {
+            stability = coord.deltaSum / max_divDelta;
+            // divergent cells are grayscale
+            sat = 0;
+            // i don't know what this means for divergent cells...
+            val = Math.floor(100 - 80 * stability);
+        } else {
+            stability = coord.deltaSum / max_convDelta;
+            // high stability means desaturated and dark
+            //sat = Math.floor(100 - 80 * stability);
+            sat = 100;
+            val = Math.floor(50 - 50 * stability);
+
+            window.debug = 0;
+            if (window.debug++ % 100 === 0) console.log(sat);
+        }
+
+        ctx.fillStyle = 'hsl(60,'+sat+'%,'+val+'%)';
+        ctx.fillRect(coord.i, coord.j, pixelSize, pixelSize)
+    });
 
     return ctx.getImageData(0, 0, canvas.width, canvas.height);
 }
