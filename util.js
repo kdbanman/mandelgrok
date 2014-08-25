@@ -92,11 +92,44 @@ MRUQueue.prototype.push = function (newSeq) {
     this.length = this.queue.length;
 
     return this;
-}
+};
 
 MRUQueue.prototype.forEach = function (fun) {
     for (var i = this.queue.length - 1; i >= 0; i--) {
         fun(this.queue[i], i);
     }
-}
+};
 
+var renderMandelbrot = function (canvas, boundary, pixelSize) {
+    pixelSize = pixelSize || 2;
+    var ctx = canvas.getContext("2d");
+
+    var x_min = boundary[0],
+        x_max = boundary[1],
+        y_min = boundary[2],
+        y_max = boundary[3];
+
+    // scale from [0,width],[height, 0] to [x_min,x_max],[y_min,y_max]
+    var xPos = function (x) {
+        return x / canvas.width * (x_max - x_min) + x_min;
+    }
+    var yPos = function (y) {
+        return (canvas.height - y) / canvas.height * (y_max - y_min) + y_min;
+    }
+
+    var coords = [];
+    for (var i = 0; i < canvas.width; i += pixelSize) {
+        for (var j = 0; j < canvas.height; j += pixelSize) {
+            coords.push(new MandelSeq(xPos(i), yPos(j)));
+            
+            if (coords[coords.length - 1].divergent) {
+                ctx.fillStyle = '#ddd';
+            } else {
+                ctx.fillStyle = '#fcf';
+            }
+            ctx.fillRect(i, j, pixelSize, pixelSize)
+        }
+    }
+
+    return ctx.getImageData(0, 0, canvas.width, canvas.height);
+}

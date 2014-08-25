@@ -58,19 +58,20 @@ var plotDist = function (newSeqs) {
 };
 
 var plotSeq = (function () {
-    var oldBoundary = [x_min, x_max, y_min, y_max];
+    var boundary = [x_min, x_max, y_min, y_max];
+    var currImg = undefined;
 
     var boundsChanged = function () {
-        var changed = x_min !== oldBoundary[0] ||
-                      x_max !== oldBoundary[1] ||
-                      y_min !== oldBoundary[2] ||
-                      y_max !== oldBoundary[3];
+        var changed = x_min !== boundary[0] ||
+                      x_max !== boundary[1] ||
+                      y_min !== boundary[2] ||
+                      y_max !== boundary[3];
 
         if (changed) {
-            oldBoundary[0] = x_min;
-            oldBoundary[1] = x_max;
-            oldBoundary[2] = y_min;
-            oldBoundary[3] = y_max;
+            boundary[0] = x_min;
+            boundary[1] = x_max;
+            boundary[2] = y_min;
+            boundary[3] = y_max;
 
             return changed;
         }
@@ -80,11 +81,13 @@ var plotSeq = (function () {
         var canvas = document.getElementById("plot_canvas");
         var ctx = canvas.getContext("2d");
 
-        // if boundaries unchanged && canvas saved, reset canvas state
-        // else render mandelbrot and save canvas
-        if (boundsChanged) {
-            ctx.fillStyle = "#ededed";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // if boundaries changed or saved image exists
+        // render mandelbrot and save canvas
+        if (boundsChanged() || currImg === undefined) {
+            currImg = renderMandelbrot(canvas, boundary, 4);
+        } else {
+            // restore canvas image
+            ctx.putImageData(currImg, 0,0);
         }
 
         // scale from [-2,-2],[2,2] to [0,height],[width,0]
