@@ -185,25 +185,6 @@ document.getElementById("plot_canvas").addEventListener('mousemove', function (e
     newBounded(mouse.x, mouse.y);
 });
 
-$("#plot_canvas").bind('mousewheel', function (e) {
-    var event = e.originalEvent;
-
-    var zoom = event.wheelDelta / 35;
-    var newLength;
-    if (event.wheelDelta > 0) {
-        newLength = (x_max - x_min) / zoom;
-    } else {
-        zoom = -1 * zoom;
-        newLength = (x_max - x_min) * zoom;
-    }
-
-    var newCenter = getMousePos(event, x_min, x_max, y_min, y_max);
-    x_min = newCenter.x - newLength / 2;
-    x_max = newCenter.x + newLength / 2;
-    y_min = newCenter.y - newLength / 2;
-    y_max = newCenter.y + newLength / 2;
-});
-
 $(window).resize(resize);
 
 // INIT BEHAVIOUR
