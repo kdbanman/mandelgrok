@@ -3,10 +3,10 @@
 // sequences to plot
 var newSeqs = new MRUQueue(30),
 // plot boundaries for zooming
-    x_min = -2,
-    x_max = 2,
-    y_min = -2,
-    y_max = 2;
+    x_min = -1.7,
+    x_max = 1,
+    y_min = -0.3,
+    y_max = 1;
 
 // APP FUNCTIONS
 var plotDist = function (newSeqs) {
