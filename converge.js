@@ -1,15 +1,22 @@
-// GLOBAL STATE
+
+
+
+// GLOBAL STACICS AND STATE
+var POINT_STROKE_COLOR = 'hsl(320,80%,30%)';
+var POINT_STROKE_WEIGHT = 1.5;
 
 // sequences to plot
-var newSeqs = new MRUQueue(30),
+var sequenceQueue = new MRUQueue(30),
 // plot boundaries for zooming
-    x_min = -1.4,
+    x_min = -1.6,
     x_max = 0.6,
-    y_min = -1,
-    y_max = 1;
+    y_min = -1.1,
+    y_max = 1.1;
+
+
 
 // APP FUNCTIONS
-var plotDist = function (newSeqs) {
+var renderDistancePlot = function (newSeqs) {
     var canvas = document.getElementById('dist_canvas');
     var ctx = canvas.getContext("2d");
 
@@ -25,7 +32,8 @@ var plotDist = function (newSeqs) {
         // newest sequence is slightly larger and outlined
         var size = age === 0 ? 4 : 3;
         if (age === 0) {
-            ctx.strokeStyle = 'hsl(320,100%,20%)';
+            ctx.strokeStyle = POINT_STROKE_COLOR;
+            ctx.lineWidth = POINT_STROKE_WEIGHT;
         }
         
         var maxDist = 0.0,
@@ -60,7 +68,69 @@ var plotDist = function (newSeqs) {
     });
 };
 
-var plotSeq = (function () {
+
+var renderMandelbrot = function (canvas, boundary, pixelSize) {
+    pixelSize = pixelSize || 2;
+    var ctx = canvas.getContext("2d");
+
+    var x_min = boundary[0],
+        x_max = boundary[1],
+        y_min = boundary[2],
+        y_max = boundary[3];
+
+    // scale from [0,width],[height, 0] to [x_min,x_max],[y_min,y_max]
+    var xPos = function (x) {
+        return x / canvas.width * (x_max - x_min) + x_min;
+    };
+    var yPos = function (y) {
+        return (canvas.height - y) / canvas.height * (y_max - y_min) + y_min;
+    };
+
+    var max_divDelta = max_convDelta = 0;
+    var coords = [];
+    for (var i = 0; i < canvas.width; i += pixelSize) {
+        for (var j = 0; j < canvas.height; j += pixelSize) {
+            var coord = new MandelSeq(xPos(i), yPos(j));
+
+            coord.i = i;
+            coord.j = j;
+
+            coord.deltaSum = 0;
+            for (var n = 0; n < coord.length; n++) {
+                coord.deltaSum += coord.getDelta(n);
+            }
+            if (coord.divergent) {
+                max_divDelta  = Math.max(coord.deltaSum, max_divDelta);
+            } else {
+                max_convDelta = Math.max(coord.deltaSum, max_convDelta);
+            }
+
+            coords.push(coord);
+        }
+    }
+
+    coords.forEach(function (coord) {
+        var stability,
+            val;
+        if (coord.divergent) {
+            stability = coord.deltaSum / max_divDelta;
+            // i don't know what this means for divergent cells...
+            val = Math.floor(100 - 80 * Math.sqrt(stability));
+        } else {
+            stability = coord.deltaSum / max_convDelta;
+            // high stability means desaturated and dark
+            val = Math.floor(20 - 20 * stability);
+        }
+
+        ctx.fillStyle = 'hsl(0,0%,'+val+'%)';
+        ctx.fillRect(coord.i, coord.j, pixelSize, pixelSize)
+    });
+
+    return ctx.getImageData(0, 0, canvas.width, canvas.height);
+};
+
+
+var renderComplexPlane = (function () {
     var boundary = [x_min, x_max, y_min, y_max];
     var currImg = undefined;
 
@@ -80,11 +150,11 @@ var plotSeq = (function () {
         }
     };
 
-    return function (newSeqs, forceRedraw) {
+    return function (sequences, forceRedraw) {
         var canvas = document.getElementById("plot_canvas");
         var ctx = canvas.getContext("2d");
 
-        // if boundaries changed or saved image exists
+        // if boundaries changed or saved image does not exist
         // render mandelbrot and save canvas
         if (boundsChanged() || currImg === undefined || forceRedraw) {
             currImg = renderMandelbrot(canvas, boundary, 4);
@@ -101,23 +171,24 @@ var plotSeq = (function () {
             return Math.floor(canvas.height - (y - y_min) * canvas.height / (y_max - y_min));
         };
 
-        newSeqs.forEach(function (newSeq, age) {
+        sequences.forEach(function (sequence, age) {
             // fade with age, sharply at first
-            var alpha = Math.pow(1.0 - 0.9 * age / newSeqs.length, 8); 
+            var alpha = Math.pow(1.0 - 0.9 * age / sequences.length, 8);
             alpha = Math.max(0.1, alpha);
 
             // newest sequence is slightly larger and outlined
             var size = age === 0 ? 4 : 3;
             if (age === 0) {
-                ctx.strokeStyle = 'hsl(320,80%,20%)';
+                ctx.strokeStyle = POINT_STROKE_COLOR;
+                ctx.lineWidth = POINT_STROKE_WEIGHT;
             }
 
-            for (i = 0; i < newSeq.length; i++) {
+            for (var i = 0; i < sequence.length; i++) {
                 // do not render stable trails
-                if (newSeq.getDelta(i) > (x_max - x_min) / canvas.width / 2) {
-                    var z = newSeq.z_hist[i];
-                    x = Math.floor(xScale(z.re));
-                    y = Math.floor(yScale(z.im));
+                if (sequence.getDelta(i) > (x_max - x_min) / canvas.width / 2) {
+                    var z = sequence.z_hist[i];
+                    var x = Math.floor(xScale(z.re));
+                    var y = Math.floor(yScale(z.im));
 
                     // do not render off canvas
                     if (x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
@@ -131,62 +202,63 @@ var plotSeq = (function () {
             }
         });
     };
-})()
+})();
 
-var render = function (newSeqs, forceRedraw) {
-    plotDist(newSeqs);
-    plotSeq(newSeqs, forceRedraw);
+var render = function (sequences, forceRedraw) {
+    renderDistancePlot(sequences);
+    renderComplexPlane(sequences, forceRedraw);
 };
 
-var newBounded = function (x, y) {
+var addAndRenderSequence = function (x, y) {
     if (x === undefined) x = x_min + (x_max - x_min) / 2;
     if (y === undefined) y = y_min + (y_max - y_min) / 2;
 
-    newSeqs.push(new MandelSeq(x, y));
-    render(newSeqs);
+    sequenceQueue.push(new MandelSeq(x, y));
+    render(sequenceQueue);
 };
 
-var getMousePos = function (evt, x_min, x_max, y_min, y_max) {
+var getMouseComplexPlanePosition = function (evt, x_min, x_max, y_min, y_max) {
     var canv = document.getElementById("plot_canvas");
     var rect = canv.getBoundingClientRect();
 
     var x = evt.clientX - rect.left;
     var y = evt.clientY - rect.top;
 
-    var trans_x = (x_max - x_min) * x / canv.width + x_min;
-    var trans_y = (y_max - y_min) * (canv.height - y) / canv.height+ y_min;
+    var translatedX = (x_max - x_min) * x / canv.width + x_min;
+    var translatedY = (y_max - y_min) * (canv.height - y) / canv.height+ y_min;
 
     return {
-        x: trans_x,
-        y: trans_y
+        x: translatedX,
+        y: translatedY
     };
 };
 
 // fill container divs with canvas
 var resize = function () {
 
-    var fill = function (canv, cont) {
-        canv.height(cont.height())
-        canv.attr('height', cont.height());
+    var fillContainerWithCanvas = function (canvas, container) {
+        canvas.height(container.height());
+        canvas.attr('height', container.height());
 
-        canv.width(cont.width());
-        canv.attr('width', cont.width());
+        canvas.width(container.width());
+        canvas.attr('width', container.width());
     };
 
-    fill($('#plot_canvas'), $('#plot'));
-    fill($('#dist_canvas'), $('#dist'));
+    fillContainerWithCanvas($('#plot_canvas'), $('#plot'));
+    fillContainerWithCanvas($('#dist_canvas'), $('#dist'));
 
-    render(newSeqs, true);
+    render(sequenceQueue, true);
 };
+
 
 // EVENT LISTENERS
 document.getElementById("plot_canvas").addEventListener('mousemove', function (event) {
-    var mouse = getMousePos(event, x_min, x_max, y_min, y_max);
-    newBounded(mouse.x, mouse.y);
+    var complexPosition = getMouseComplexPlanePosition(event, x_min, x_max, y_min, y_max);
+    addAndRenderSequence(complexPosition.x, complexPosition.y);
 });
 
 $(window).resize(resize);
 
-// INIT BEHAVIOUR
+
+// GO!
 resize();
-render(newSeqs, true);

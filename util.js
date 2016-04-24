@@ -1,4 +1,7 @@
-// Z is a complex coord.
+
+
+
+// Z is a complex number.
 // Multiply with another with Z.mult(z).
 // Calculate distance with Z.dist(z).
 // Calculate it's magnitude with Z.mag().
@@ -22,7 +25,7 @@ Z.prototype.dist = function (z) {
 
 Z.prototype.mag = function () {
     return this.dist(new Z(0,0));
-}
+};
 
 Z.prototype.next = function (c) {
     var next_re = this.re * this.re - this.im * this.im + c.re;
@@ -31,13 +34,15 @@ Z.prototype.next = function (c) {
     return new Z(next_re, next_im);
 };
 
+
+
 // Mandelbrot Sequence generator
 var MandelSeq = function (re, im, length) {
     length = length || 500;
     this.length = length;
 
     // define constant coordinate
-    this.c = new Z(re, im)
+    this.c = new Z(re, im);
 
     // track sequence history
     this.z_hist = [new Z(0,0)];     // history of z
@@ -61,18 +66,20 @@ var MandelSeq = function (re, im, length) {
 
 MandelSeq.prototype.getDist = function (i) {
     return this.dist_hist[i];
-}
+};
 
 MandelSeq.prototype.getDelta = function (i) {
     return this.delta_hist[i];
-}
+};
+
+
 
 // queue structure that pushes FILO, and iterates last-to-first
 var MRUQueue = function (len) {
     this.maxLength = len;
     this.length = 0;
     this.queue = [];
-}
+};
 
 MRUQueue.prototype.push = function (newSeq) {
     // if the queue is full, then shift queue towards end
@@ -100,62 +107,5 @@ MRUQueue.prototype.forEach = function (fun) {
     }
 };
 
-var renderMandelbrot = function (canvas, boundary, pixelSize) {
-    pixelSize = pixelSize || 2;
-    var ctx = canvas.getContext("2d");
 
-    var x_min = boundary[0],
-        x_max = boundary[1],
-        y_min = boundary[2],
-        y_max = boundary[3];
 
-    // scale from [0,width],[height, 0] to [x_min,x_max],[y_min,y_max]
-    var xPos = function (x) {
-        return x / canvas.width * (x_max - x_min) + x_min;
-    }
-    var yPos = function (y) {
-        return (canvas.height - y) / canvas.height * (y_max - y_min) + y_min;
-    }
-
-    var max_divDelta = max_convDelta = 0;
-    var coords = [];
-    for (var i = 0; i < canvas.width; i += pixelSize) {
-        for (var j = 0; j < canvas.height; j += pixelSize) {
-            var coord = new MandelSeq(xPos(i), yPos(j));
-
-            coord.i = i;
-            coord.j = j;
-
-            coord.deltaSum = 0;
-            for (var n = 0; n < coord.length; n++) {
-                coord.deltaSum += coord.getDelta(n);
-            }
-            if (coord.divergent) {
-                max_divDelta  = Math.max(coord.deltaSum, max_divDelta);
-            } else {
-                max_convDelta = Math.max(coord.deltaSum, max_convDelta);
-            }
-
-            coords.push(coord);
-        }
-    }
-
-    coords.forEach(function (coord) {
-        var stability,
-            val;
-        if (coord.divergent) {
-            stability = coord.deltaSum / max_divDelta;
-            // i don't know what this means for divergent cells...
-            val = Math.floor(100 - 80 * Math.sqrt(stability));
-        } else {
-            stability = coord.deltaSum / max_convDelta;
-            // high stability means desaturated and dark
-            val = Math.floor(20 - 20 * stability);
-        }
-
-        ctx.fillStyle = 'hsl(0,0%,'+val+'%)';
-        ctx.fillRect(coord.i, coord.j, pixelSize, pixelSize)
-    });
-
-    return ctx.getImageData(0, 0, canvas.width, canvas.height);
-}
