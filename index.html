@@ -6,9 +6,39 @@
     html, body {
         height: 100%;
         width: 100%;
-        margin: 0px;
+        margin: 0;
         padding: 2px;
         overflow: hidden;
+    }
+    .loadingBackground {
+        z-index: 2;
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        top: 0;
+        left: 0;
+
+        opacity: 0.5;
+        background-color: #666666;
+    }
+    .loadingText {
+        z-index: 3;
+
+        position: absolute;
+        top: 30%;
+        width: 40rem;
+        left: 50%;
+        margin-left: -20rem;
+
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 2px 2px 8px #888888;
+
+        opacity: 0.8;
+        background-color: #fff;
+        font-size: 4rem;
+        font-family: "Courier New", monospace;
+        text-align: center;
     }
     .canvas_container {
         display: inline-block;
@@ -23,7 +53,6 @@
     canvas {
         margin: 0;
         padding: 0;
-        border: 1px solid #c3c3c3;
     }
     #plot_canvas {
     }
@@ -32,6 +61,11 @@
 </style>
 </head>
 <body>
+
+<div class="loadingModal">
+    <div class="loadingBackground"></div>
+    <div class="loadingText">loading...</div>
+</div>
 
 <div class="canvas_container" id="plot">
     <canvas id="plot_canvas">

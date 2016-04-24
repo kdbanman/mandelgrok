@@ -69,7 +69,11 @@ var renderDistancePlot = function (newSeqs) {
 };
 
 
-var renderMandelbrot = function (canvas, boundary, pixelSize) {
+var renderMandelbrot = function (canvas, boundary, pixelSize, newImage) {
+    var loadingModal = $(".loadingModal");
+    var loadingText = $(".loadingText");
+    loadingModal.show();
+    
     pixelSize = pixelSize || 2;
     var ctx = canvas.getContext("2d");
 
@@ -86,30 +90,13 @@ var renderMandelbrot = function (canvas, boundary, pixelSize) {
         return (canvas.height - y) / canvas.height * (y_max - y_min) + y_min;
     };
 
-    var max_divDelta = max_convDelta = 0;
+    var max_divDelta = 0,
+        max_convDelta = 0,
+        col = 0,
+        row = 0;
     var coords = [];
-    for (var i = 0; i < canvas.width; i += pixelSize) {
-        for (var j = 0; j < canvas.height; j += pixelSize) {
-            var coord = new MandelSeq(xPos(i), yPos(j));
 
-            coord.i = i;
-            coord.j = j;
-
-            coord.deltaSum = 0;
-            for (var n = 0; n < coord.length; n++) {
-                coord.deltaSum += coord.getDelta(n);
-            }
-            if (coord.divergent) {
-                max_divDelta  = Math.max(coord.deltaSum, max_divDelta);
-            } else {
-                max_convDelta = Math.max(coord.deltaSum, max_convDelta);
-            }
-
-            coords.push(coord);
-        }
-    }
-
-    coords.forEach(function (coord) {
+    var drawCoord = function (coord) {
         var stability,
             val;
         if (coord.divergent) {
@@ -124,9 +111,41 @@ var renderMandelbrot = function (canvas, boundary, pixelSize) {
 
         ctx.fillStyle = 'hsl(0,0%,'+val+'%)';
         ctx.fillRect(coord.i, coord.j, pixelSize, pixelSize)
-    });
+    };
 
-    return ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var processCol = function () {
+        for (row = 0; row < canvas.height; row += pixelSize) {
+            var coord = new MandelSeq(xPos(col), yPos(row));
+
+            coord.i = col;
+            coord.j = row;
+
+            coord.deltaSum = 0;
+            for (var n = 0; n < coord.length; n++) {
+                coord.deltaSum += coord.getDelta(n);
+            }
+            if (coord.divergent) {
+                max_divDelta  = Math.max(coord.deltaSum, max_divDelta);
+            } else {
+                max_convDelta = Math.max(coord.deltaSum, max_convDelta);
+            }
+
+            coords.push(coord);
+
+            drawCoord(coord);
+        }
+        if (col < canvas.width) {
+            col += pixelSize;
+            setTimeout(processCol, 1);
+        } else {
+            coords.forEach(drawCoord);
+
+            loadingModal.hide();
+
+            newImage(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        }
+    };
+    processCol();
 };
 
 
@@ -157,10 +176,13 @@ var renderComplexPlane = (function () {
         // if boundaries changed or saved image does not exist
         // render mandelbrot and save canvas
         if (boundsChanged() || currImg === undefined || forceRedraw) {
-            currImg = renderMandelbrot(canvas, boundary, 4);
+            renderMandelbrot(canvas, boundary, 4, function (img) {
+                currImg = img;
+                ctx.putImageData(currImg, 0, 0);
+            });
         } else {
             // restore canvas image
-            ctx.putImageData(currImg, 0,0);
+            ctx.putImageData(currImg, 0, 0);
         }
 
         // scale from [x_min,y_min],[x_max,y_max] to [0,height],[width,0]

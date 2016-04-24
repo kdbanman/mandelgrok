@@ -106,6 +106,3 @@ MRUQueue.prototype.forEach = function (fun) {
         fun(this.queue[i], i);
     }
 };
-
-
-
