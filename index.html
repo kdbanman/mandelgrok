@@ -9,6 +9,8 @@
         margin: 0;
         padding: 2px;
         overflow: hidden;
+
+        background-color: #111;
     }
     .loadingBackground {
         z-index: 2;
@@ -44,6 +46,41 @@
         display: inline-block;
         height: 99vh;
     }
+    .zoomControls {
+        position: absolute;
+        top: 0.5rem;
+        left: 1rem;
+
+        opacity: 0.3;
+        padding: 0.5rem;
+        background-color: white;
+    }
+    .zoomControls:hover {
+        opacity: 0.8;
+    }
+    .zoom {
+        width: 2rem;
+        height: 2rem;
+        margin: 0.3rem;
+        padding: 0.3rem;
+
+        color: hsl(320, 80%, 30%);
+        font-family: "Courier New", monospace;
+        line-height: 2rem;
+        font-size: 2rem;
+        font-weight: bolder;
+        text-align: center;
+        vertical-align: middle;
+
+        cursor: default;
+    }
+    .zoom:hover {
+        background-color: hsla(320, 50%, 30%, 0.1);
+    }
+    .zoomSelected {
+        background-color: hsl(320, 50%, 30%) !important;
+        color: white;
+    }
     #plot {
         width: 99vh;
     }
@@ -61,6 +98,11 @@
 </style>
 </head>
 <body>
+
+<div class="zoomControls">
+    <div class="zoom zoomIn">+</div>
+    <div class="zoom zoomOut">-</div>
+</div>
 
 <div class="loadingModal">
     <div class="loadingBackground"></div>

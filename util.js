@@ -101,6 +101,10 @@ MRUQueue.prototype.push = function (newSeq) {
     return this;
 };
 
+MRUQueue.prototype.first = function () {
+    return this.queue[0];
+};
+
 MRUQueue.prototype.forEach = function (fun) {
     for (var i = this.queue.length - 1; i >= 0; i--) {
         fun(this.queue[i], i);

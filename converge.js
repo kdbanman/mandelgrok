@@ -272,14 +272,75 @@ var resize = function () {
     render(sequenceQueue, true);
 };
 
+var updateCursor = function () {
+    if (zoomInElement.hasClass('zoomSelected')) {
+        $('#plot_canvas').css('cursor', 'zoom-in');
+    } else if (zoomOutElement.hasClass('zoomSelected')) {
+        $('#plot_canvas').css('cursor', 'zoom-out');
+    } else {
+        $('#plot_canvas').css('cursor', 'default');
+    }
+};
+
+
 
 // EVENT LISTENERS
+var zoomInElement = $(".zoomIn");
+var zoomOutElement = $(".zoomOut");
+
 document.getElementById("plot_canvas").addEventListener('mousemove', function (event) {
-    var complexPosition = getMouseComplexPlanePosition(event, x_min, x_max, y_min, y_max);
-    addAndRenderSequence(complexPosition.x, complexPosition.y);
+    if (!(zoomInElement.hasClass('zoomSelected') || zoomOutElement.hasClass('zoomSelected'))) {
+        var complexPosition = getMouseComplexPlanePosition(event, x_min, x_max, y_min, y_max);
+        addAndRenderSequence(complexPosition.x, complexPosition.y);
+    }
+});
+
+document.getElementById("plot_canvas").addEventListener('click', function (event) {
+    if (!(zoomInElement.hasClass('zoomSelected') || zoomOutElement.hasClass('zoomSelected'))) {
+        return;
+    }
+
+    var currentBoundWidth = x_max - x_min;
+    var currentBoundHeight = y_max - y_min;
+    var zoomCenter, newBoundWidth, newBoundHeight;
+
+    if (zoomInElement.hasClass('zoomSelected')) {
+        zoomCenter = getMouseComplexPlanePosition(event, x_min, x_max, y_min, y_max);
+
+        newBoundWidth = currentBoundWidth / 2;
+        newBoundHeight = currentBoundHeight / 2;
+    } else if (zoomOutElement.hasClass('zoomSelected')) {
+        zoomCenter = {
+            x: x_min + currentBoundWidth / 2,
+            y: y_min + currentBoundHeight / 2
+        };
+        newBoundWidth = currentBoundWidth * 2;
+        newBoundHeight = currentBoundHeight * 2;
+    }
+
+    x_min = zoomCenter.x - newBoundWidth / 2;
+    x_max = zoomCenter.x + newBoundWidth / 2;
+    y_min = zoomCenter.y - newBoundHeight / 2;
+    y_max = zoomCenter.y + newBoundHeight / 2;
+
+    render(sequenceQueue);
 });
 
 $(window).resize(resize);
+
+zoomInElement.click(function () {
+    zoomInElement.toggleClass('zoomSelected');
+    zoomOutElement.removeClass('zoomSelected');
+
+    updateCursor();
+});
+zoomOutElement.click(function () {
+    zoomOutElement.toggleClass('zoomSelected');
+    zoomInElement.removeClass('zoomSelected');
+
+    updateCursor();
+});
+
 
 
 // GO!
