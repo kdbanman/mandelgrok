@@ -69,7 +69,7 @@ var renderDistancePlot = function (newSeqs) {
 };
 
 
-var renderMandelbrot = function (canvas, boundary, pixelSize, newImage) {
+var renderMandelbrot = function (canvas, boundary, pixelSize, finishedRender) {
     var loadingModal = $(".loadingModal");
     var loadingText = $(".loadingText");
     loadingModal.show();
@@ -113,6 +113,7 @@ var renderMandelbrot = function (canvas, boundary, pixelSize, newImage) {
         ctx.fillRect(coord.i, coord.j, pixelSize, pixelSize)
     };
 
+    var cancel = false;
     var processCol = function () {
         for (row = 0; row < canvas.height; row += pixelSize) {
             var coord = new MandelSeq(xPos(col), yPos(row));
@@ -134,7 +135,7 @@ var renderMandelbrot = function (canvas, boundary, pixelSize, newImage) {
 
             drawCoord(coord);
         }
-        if (col < canvas.width) {
+        if (col < canvas.width && !cancel) {
             col += pixelSize;
             setTimeout(processCol, 1);
         } else {
@@ -142,10 +143,14 @@ var renderMandelbrot = function (canvas, boundary, pixelSize, newImage) {
 
             loadingModal.hide();
 
-            newImage(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            finishedRender(ctx.getImageData(0, 0, canvas.width, canvas.height));
         }
     };
     processCol();
+
+    return function () {
+        cancel = true;
+    };
 };
 
 
@@ -169,16 +174,18 @@ var renderComplexPlane = (function () {
         }
     };
 
-    return function (sequences, forceRedraw) {
+    return function (sequences, forceRedraw, finishedAsync) {
         var canvas = document.getElementById("plot_canvas");
         var ctx = canvas.getContext("2d");
+        var cancelAsync;
 
         // if boundaries changed or saved image does not exist
         // render mandelbrot and save canvas
         if (boundsChanged() || currImg === undefined || forceRedraw) {
-            renderMandelbrot(canvas, boundary, 4, function (img) {
+            cancelAsync = renderMandelbrot(canvas, boundary, 4, function (img) {
                 currImg = img;
                 ctx.putImageData(currImg, 0, 0);
+                finishedAsync();
             });
         } else {
             // restore canvas image
@@ -223,12 +230,16 @@ var renderComplexPlane = (function () {
                 }
             }
         });
+
+        return cancelAsync;
     };
 })();
 
-var render = function (sequences, forceRedraw) {
+var render = function (sequences, forceRedraw, finishedAsync) {
     renderDistancePlot(sequences);
-    renderComplexPlane(sequences, forceRedraw);
+
+    // return async cancellation callback
+    return renderComplexPlane(sequences, forceRedraw, finishedAsync);
 };
 
 var addAndRenderSequence = function (x, y) {
@@ -256,21 +267,48 @@ var getMouseComplexPlanePosition = function (evt, x_min, x_max, y_min, y_max) {
 };
 
 // fill container divs with canvas
-var resize = function () {
+var resize = (function () {
 
-    var fillContainerWithCanvas = function (canvas, container) {
-        canvas.height(container.height());
-        canvas.attr('height', container.height());
+    var resizing = false;
+    var anotherResizeQueued = false;
+    var asyncCancel;
 
-        canvas.width(container.width());
-        canvas.attr('width', container.width());
+    var guardedResize = function () {
+        if (resizing) {
+            anotherResizeQueued = true;
+
+            if (typeof asyncCancel === 'function') {
+                asyncCancel();
+            }
+
+            return;
+        }
+
+        resizing = true;
+
+        var fillContainerWithCanvas = function (canvas, container) {
+            canvas.height(container.height());
+            canvas.attr('height', container.height());
+
+            canvas.width(container.width());
+            canvas.attr('width', container.width());
+        };
+
+        fillContainerWithCanvas($('#plot_canvas'), $('#plot'));
+        fillContainerWithCanvas($('#dist_canvas'), $('#dist'));
+
+        asyncCancel = render(sequenceQueue, true, function () {
+            resizing = false;
+
+            if (anotherResizeQueued) {
+                anotherResizeQueued = false;
+                guardedResize();
+            }
+        });
     };
 
-    fillContainerWithCanvas($('#plot_canvas'), $('#plot'));
-    fillContainerWithCanvas($('#dist_canvas'), $('#dist'));
-
-    render(sequenceQueue, true);
-};
+    return guardedResize;
+}());
 
 var updateCursor = function () {
     if (zoomInElement.hasClass('zoomSelected')) {
