@@ -35,6 +35,31 @@ Z.prototype.next = function (c) {
 };
 
 
+// A much faster Mandelbrot coordinate, without the time/memory overhead of keeping sequence history.
+var MandelCoord = function (re, im, maxIter) {
+    maxIter = maxIter || 500;
+
+    this.c = new Z(re, im);
+
+    this.deltaSum = 0;
+
+    var currZ = new Z(0,0);
+    var currIter = 0;
+    var nextZ;
+    while (currIter < maxIter && currZ.mag() < 2) {
+        nextZ = currZ.next(this.c);
+        this.deltaSum += currZ.dist(nextZ);
+        currZ = nextZ;
+        currIter += 1;
+    }
+
+    this.divergent = currIter < maxIter;
+    this.escaped = this.divergent ? currIter : undefined;
+    this.length = currIter;
+
+    console.log(this.divergent);
+};
+
 
 // Mandelbrot Sequence generator
 var MandelSeq = function (re, im, length) {

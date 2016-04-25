@@ -86,8 +86,8 @@ var renderMandelbrot = function (canvas, boundary, pixelSize, finishedRender) {
         return (canvas.height - y) / canvas.height * (y_max - y_min) + y_min;
     };
 
-    var max_divDelta = 0,
-        max_convDelta = 0,
+    var maxDivergentDelta = 0,
+        maxConvergentDelta = 0,
         col = 0,
         row = 0;
     var coords = [];
@@ -96,11 +96,11 @@ var renderMandelbrot = function (canvas, boundary, pixelSize, finishedRender) {
         var stability,
             val;
         if (coord.divergent) {
-            stability = coord.deltaSum / max_divDelta;
+            stability = coord.deltaSum / maxDivergentDelta;
             // i don't know what this means for divergent cells...
             val = Math.floor(100 - 80 * Math.sqrt(stability));
         } else {
-            stability = coord.deltaSum / max_convDelta;
+            stability = coord.deltaSum / maxConvergentDelta;
             // high stability means desaturated and dark
             val = Math.floor(20 - 20 * stability);
         }
@@ -112,19 +112,15 @@ var renderMandelbrot = function (canvas, boundary, pixelSize, finishedRender) {
     var cancel = false;
     var processCol = function () {
         for (row = 0; row < canvas.height; row += pixelSize) {
-            var coord = new MandelSeq(xPos(col), yPos(row));
+            var coord = new MandelCoord(xPos(col), yPos(row));
 
             coord.i = col;
             coord.j = row;
 
-            coord.deltaSum = 0;
-            for (var n = 0; n < coord.length; n++) {
-                coord.deltaSum += coord.getDelta(n);
-            }
             if (coord.divergent) {
-                max_divDelta  = Math.max(coord.deltaSum, max_divDelta);
+                maxDivergentDelta = Math.max(coord.deltaSum, maxDivergentDelta);
             } else {
-                max_convDelta = Math.max(coord.deltaSum, max_convDelta);
+                maxConvergentDelta = Math.max(coord.deltaSum, maxConvergentDelta);
             }
 
             coords.push(coord);
@@ -228,13 +224,13 @@ var renderComplexPlane = (function () {
         if (boundsChanged() || currImg === undefined || forceRedraw) {
             var loadingModal = $(".loadingModal");
 
-            renderMandelbrot(minimapCanvas, HOME_BOUNDARY, 4, function (img) {
+            renderMandelbrot(minimapCanvas, HOME_BOUNDARY, 2, function (img) {
                 minimapImg = img;
                 minimapCtx.putImageData(minimapImg, 0, 0);
             });
 
             loadingModal.show();
-            cancelAsync = renderMandelbrot(canvas, boundary, 4, function (img) {
+            cancelAsync = renderMandelbrot(canvas, boundary, 2, function (img) {
                 currImg = img;
                 ctx.putImageData(currImg, 0, 0);
                 renderSequences(canvas, sequences, boundary, ctx);
