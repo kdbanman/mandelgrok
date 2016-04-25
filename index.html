@@ -79,8 +79,24 @@
         background-color: hsla(320, 50%, 30%, 0.1);
     }
     .zoomSelected {
+        opacity: 0.8;
+    }
+    .zoomSelected .zoomSelected {
         background-color: hsl(320, 50%, 30%) !important;
         color: white;
+        box-shadow: 2px 2px 8px #888888;
+    }
+    .zoomSelected .zoomSelected .icon {
+        -webkit-animation-name: bounce;
+        animation-name: bounce;
+        -webkit-transform-origin: center bottom;
+        transform-origin: center bottom;
+        -webkit-animation-iteration-count: infinite;
+        animation-iteration-count: infinite;
+        -webkit-animation-duration: 5s;
+        animation-duration: 5s;
+        -webkit-animation-fill-mode: both;
+        animation-fill-mode: both;
     }
     #plot {
         width: 99vh;
@@ -99,6 +115,8 @@
         opacity: 0.7;
         border: 1px solid #111;
         box-shadow: 2px 2px 8px #888888;
+
+        cursor: move;
     }
     #minimap:hover {
         opacity: 1;
@@ -107,13 +125,70 @@
         margin: 0;
         padding: 0;
     }
+
+    @-webkit-keyframes bounce {
+        from, 4%, 11%, 16%, 20%, to {
+            -webkit-animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+            animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+            -webkit-transform: translate3d(0,0,0);
+            transform: translate3d(0,0,0);
+        }
+
+        8%, 9% {
+            -webkit-animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+            animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+            -webkit-transform: translate3d(0, 0.3rem, 0);
+            transform: translate3d(0, 0.3rem, 0);
+        }
+
+        14% {
+            -webkit-animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+            animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+            -webkit-transform: translate3d(0, -0.5rem, 0);
+            transform: translate3d(0, -0.5rem, 0);
+        }
+
+        18% {
+            -webkit-transform: translate3d(0,-0.3rem,0);
+            transform: translate3d(0,-0.3rem,0);
+        }
+    }
+
+    @keyframes bounce {
+        from, 4%, 11%, 16%, 20%, to {
+            -webkit-animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+            animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+            -webkit-transform: translate3d(0,0,0);
+            transform: translate3d(0,0,0);
+        }
+
+        8%, 9% {
+            -webkit-animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+            animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+            -webkit-transform: translate3d(0, 0.3rem, 0);
+            transform: translate3d(0, 0.3rem, 0);
+        }
+
+        14% {
+            -webkit-animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+            animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+            -webkit-transform: translate3d(0, -0.5rem, 0);
+            transform: translate3d(0, -0.5rem, 0);
+        }
+
+        18% {
+            -webkit-transform: translate3d(0,-0.3rem,0);
+            transform: translate3d(0,-0.3rem,0);
+        }
+    }
+
 </style>
 </head>
 <body>
 
 <div class="zoomControls">
-    <div class="zoom zoomIn">+</div>
-    <div class="zoom zoomOut">-</div>
+    <div class="zoom zoomIn"><div class="icon">+</div></div>
+    <div class="zoom zoomOut"><div class="icon">-</div></div>
 </div>
 
 <div class="loadingModal">

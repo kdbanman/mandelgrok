@@ -340,7 +340,19 @@ var resize = (function () {
     return guardedResize;
 }());
 
-var updateCursor = function () {
+
+
+// EVENT LISTENERS
+var zoomInElement = $('.zoomIn');
+var zoomOutElement = $('.zoomOut');
+
+var updateZoomUI = function () {
+    if (zoomInElement.hasClass('zoomSelected') || zoomOutElement.hasClass('zoomSelected')) {
+        $('.zoomControls').addClass('zoomSelected');
+    } else {
+        $('.zoomControls').removeClass('zoomSelected');
+    }
+
     if (zoomInElement.hasClass('zoomSelected')) {
         $('#plot_canvas').css('cursor', 'zoom-in');
     } else if (zoomOutElement.hasClass('zoomSelected')) {
@@ -349,12 +361,6 @@ var updateCursor = function () {
         $('#plot_canvas').css('cursor', 'default');
     }
 };
-
-
-
-// EVENT LISTENERS
-var zoomInElement = $(".zoomIn");
-var zoomOutElement = $(".zoomOut");
 
 document.getElementById("plot_canvas").addEventListener('mousemove', function (event) {
     if (!(zoomInElement.hasClass('zoomSelected') || zoomOutElement.hasClass('zoomSelected'))) {
@@ -400,15 +406,41 @@ zoomInElement.click(function () {
     zoomInElement.toggleClass('zoomSelected');
     zoomOutElement.removeClass('zoomSelected');
 
-    updateCursor();
+    updateZoomUI();
 });
 zoomOutElement.click(function () {
     zoomOutElement.toggleClass('zoomSelected');
     zoomInElement.removeClass('zoomSelected');
 
-    updateCursor();
+    updateZoomUI();
 });
 
+var minimap = $('#minimap');
+minimap.dragging = false;
+minimap.on("mousemove", function (e) {
+    if (minimap.dragging) {
+        var dragDelta = {
+            x: e.pageX - minimap.dragMouseStart.pageX,
+            y: e.pageY - minimap.dragMouseStart.pageY
+        };
+        minimap.offset({
+            top: minimap.dragOffsetStart.top + dragDelta.y,
+            left: minimap.dragOffsetStart.left + dragDelta.x
+        });
+    }
+});
+minimap.on("mousedown", function (e) {
+    minimap.dragging = true;
+    minimap.dragOffsetStart = {
+        top: minimap.offset().top,
+        left: minimap.offset().left};
+    minimap.dragMouseStart = {
+        pageX: e.pageX,
+        pageY: e.pageY}
+});
+minimap.on("mouseup", function () {
+    minimap.dragging = false;
+});
 
 
 // GO!
