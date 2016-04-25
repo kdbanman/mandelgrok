@@ -42,7 +42,7 @@
         font-family: "Courier New", monospace;
         text-align: center;
     }
-    .canvas_container {
+    .fullheight_container {
         display: inline-block;
         height: 99vh;
     }
@@ -54,6 +54,7 @@
         opacity: 0.3;
         padding: 0.5rem;
         background-color: white;
+        box-shadow: 2px 2px 8px #888888;
     }
     .zoomControls:hover {
         opacity: 0.8;
@@ -87,13 +88,24 @@
     #dist {
         width: calc(99vh* 0.3);
     }
+    #minimap {
+        position: absolute;
+        margin: 1rem;
+        bottom: 0;
+        left: 0;
+        height: calc(99vh* 0.25);
+        width: calc(99vh* 0.25);
+
+        opacity: 0.7;
+        border: 1px solid #111;
+        box-shadow: 2px 2px 8px #888888;
+    }
+    #minimap:hover {
+        opacity: 1;
+    }
     canvas {
         margin: 0;
         padding: 0;
-    }
-    #plot_canvas {
-    }
-    #dist_canvas {
     }
 </style>
 </head>
@@ -109,15 +121,21 @@
     <div class="loadingText">loading...</div>
 </div>
 
-<div class="canvas_container" id="plot">
+<div class="fullheight_container" id="plot">
     <canvas id="plot_canvas">
-    Your browser does not support the HTML5 canvas tag.
+        Your browser does not support the HTML5 canvas tag.
     </canvas>
 </div>
 
-<div class="canvas_container" id="dist">
+<div class="fullheight_container" id="dist">
     <canvas id="dist_canvas">
-    Your browser does not support the HTML5 canvas tag.
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+</div>
+
+<div class="minimap_container" id="minimap">
+    <canvas id="minimap_canvas">
+        Your browser does not support the HTML5 canvas tag.
     </canvas>
 </div>
 

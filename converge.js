@@ -5,18 +5,21 @@
 var POINT_STROKE_COLOR = 'hsl(320,80%,30%)';
 var POINT_STROKE_WEIGHT = 1.5;
 
+var HOME_BOUNDARY = [-1.6, 0.6, -1.1, 1.1];
+
 // sequences to plot
-var sequenceQueue = new MRUQueue(30),
+var sequenceQueue = new MRUQueue(30);
+
 // plot boundaries for zooming
-    x_min = -1.6,
-    x_max = 0.6,
-    y_min = -1.1,
-    y_max = 1.1;
+var x_min = HOME_BOUNDARY[0],
+    x_max = HOME_BOUNDARY[1],
+    y_min = HOME_BOUNDARY[2],
+    y_max = HOME_BOUNDARY[3];
 
 
 
 // APP FUNCTIONS
-var renderDistancePlot = function (newSeqs) {
+var renderDistancePlot = function (sequenceQueue) {
     var canvas = document.getElementById('dist_canvas');
     var ctx = canvas.getContext("2d");
 
@@ -24,9 +27,9 @@ var renderDistancePlot = function (newSeqs) {
     ctx.fillStyle = "#111";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    newSeqs.forEach(function (newSeq, age) {
+    sequenceQueue.forEach(function (sequence, age) {
         // fade with age, sharply at first
-        var alpha = Math.pow(1.0 - 0.9 * age / newSeqs.length, 8); 
+        var alpha = Math.pow(1.0 - 0.9 * age / sequenceQueue.length, 8); 
         alpha = Math.max(0.001, alpha);
 
         // newest sequence is slightly larger and outlined
@@ -37,19 +40,16 @@ var renderDistancePlot = function (newSeqs) {
         }
         
         var maxDist = 0.0,
-            maxDelta = 0.0,
             i;
-        for (i = 0; i < newSeq.length; i++) {
-            maxDist = Math.max(maxDist, newSeq.getDist(i));
-            maxDelta = Math.max(maxDelta, newSeq.getDelta(i));
+        for (i = 0; i < sequence.length; i++) {
+            maxDist = Math.max(maxDist, sequence.getDist(i));
         }
         if (maxDist === 0) maxDist = 1;
-        if (maxDelta === 0) maxDelta = 1;
             
-        var div = canvas.height/ newSeq.length;
+        var div = canvas.height/ sequence.length;
 
-        for (i = 0; i < newSeq.length; i++) {
-            var val = newSeq.getDist(i);
+        for (i = 0; i < sequence.length; i++) {
+            var val = sequence.getDist(i);
             var x = Math.floor(canvas.width * val / maxDist * 0.8);
             var y = Math.floor(i * div);
 
@@ -70,10 +70,6 @@ var renderDistancePlot = function (newSeqs) {
 
 
 var renderMandelbrot = function (canvas, boundary, pixelSize, finishedRender) {
-    var loadingModal = $(".loadingModal");
-    var loadingText = $(".loadingText");
-    loadingModal.show();
-    
     pixelSize = pixelSize || 2;
     var ctx = canvas.getContext("2d");
 
@@ -140,9 +136,6 @@ var renderMandelbrot = function (canvas, boundary, pixelSize, finishedRender) {
             setTimeout(processCol, 1);
         } else {
             coords.forEach(drawCoord);
-
-            loadingModal.hide();
-
             finishedRender(ctx.getImageData(0, 0, canvas.width, canvas.height));
         }
     };
@@ -157,6 +150,7 @@ var renderMandelbrot = function (canvas, boundary, pixelSize, finishedRender) {
 var renderComplexPlane = (function () {
     var boundary = [x_min, x_max, y_min, y_max];
     var currImg = undefined;
+    var minimapImg = undefined;
 
     var boundsChanged = function () {
         var changed = x_min !== boundary[0] ||
@@ -174,25 +168,13 @@ var renderComplexPlane = (function () {
         }
     };
 
-    return function (sequences, forceRedraw, finishedAsync) {
-        var canvas = document.getElementById("plot_canvas");
-        var ctx = canvas.getContext("2d");
-        var cancelAsync;
-
-        // if boundaries changed or saved image does not exist
-        // render mandelbrot and save canvas
-        if (boundsChanged() || currImg === undefined || forceRedraw) {
-            cancelAsync = renderMandelbrot(canvas, boundary, 4, function (img) {
-                currImg = img;
-                ctx.putImageData(currImg, 0, 0);
-                finishedAsync();
-            });
-        } else {
-            // restore canvas image
-            ctx.putImageData(currImg, 0, 0);
-        }
-
+    function renderSequences(canvas, sequences, boundary, ctx) {
         // scale from [x_min,y_min],[x_max,y_max] to [0,height],[width,0]
+        var x_min = boundary[0],
+            x_max = boundary[1],
+            y_min = boundary[2],
+            y_max = boundary[3];
+
         var xScale = function (x) {
             return Math.floor((x - x_min) * canvas.width / (x_max - x_min));
         };
@@ -230,6 +212,49 @@ var renderComplexPlane = (function () {
                 }
             }
         });
+    }
+
+    return function (sequences, forceRedraw, finishedAsync) {
+        var canvas = document.getElementById("plot_canvas");
+        var ctx = canvas.getContext("2d");
+
+        var minimapCanvas = document.getElementById("minimap_canvas");
+        var minimapCtx = minimapCanvas.getContext("2d");
+        
+        var cancelAsync;
+
+        // if boundaries changed or saved image does not exist
+        // render mandelbrot and save canvas
+        if (boundsChanged() || currImg === undefined || forceRedraw) {
+            var loadingModal = $(".loadingModal");
+
+            renderMandelbrot(minimapCanvas, HOME_BOUNDARY, 4, function (img) {
+                minimapImg = img;
+                minimapCtx.putImageData(minimapImg, 0, 0);
+            });
+
+            loadingModal.show();
+            cancelAsync = renderMandelbrot(canvas, boundary, 4, function (img) {
+                currImg = img;
+                ctx.putImageData(currImg, 0, 0);
+                renderSequences(canvas, sequences, boundary, ctx);
+
+                loadingModal.hide();
+
+                if (typeof finishedAsync === 'function') {
+                    finishedAsync();
+                }
+            });
+        } else {
+            // restore canvas image
+            ctx.putImageData(currImg, 0, 0);
+        }
+        renderSequences(canvas, sequences, boundary, ctx);
+
+        if (minimapImg != null) {
+            minimapCtx.putImageData(minimapImg, 0, 0);
+        }
+        renderSequences(minimapCanvas, sequences, HOME_BOUNDARY, minimapCtx);
 
         return cancelAsync;
     };
@@ -274,6 +299,10 @@ var resize = (function () {
     var asyncCancel;
 
     var guardedResize = function () {
+        if ($(window).height() < $('#minimap').height() * 1.3) {
+            return;
+        }
+
         if (resizing) {
             anotherResizeQueued = true;
 
@@ -296,6 +325,7 @@ var resize = (function () {
 
         fillContainerWithCanvas($('#plot_canvas'), $('#plot'));
         fillContainerWithCanvas($('#dist_canvas'), $('#dist'));
+        fillContainerWithCanvas($('#minimap_canvas'), $('#minimap'));
 
         asyncCancel = render(sequenceQueue, true, function () {
             resizing = false;

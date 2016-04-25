@@ -38,7 +38,7 @@ Z.prototype.next = function (c) {
 
 // Mandelbrot Sequence generator
 var MandelSeq = function (re, im, length) {
-    length = length || 500;
+    length = length || 150;
     this.length = length;
 
     // define constant coordinate
