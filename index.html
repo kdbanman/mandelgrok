@@ -85,19 +85,51 @@
         background-color: hsl(320, 50%, 30%) !important;
         color: white;
         box-shadow: 2px 2px 8px #888888;
-    }
-    .zoomSelected .zoomSelected .icon {
+
         -webkit-animation-name: bounce;
         animation-name: bounce;
         -webkit-transform-origin: center bottom;
         transform-origin: center bottom;
         -webkit-animation-iteration-count: infinite;
         animation-iteration-count: infinite;
-        -webkit-animation-duration: 5s;
-        animation-duration: 5s;
+        -webkit-animation-duration: 2.5s;
+        animation-duration: 2.5s;
         -webkit-animation-fill-mode: both;
         animation-fill-mode: both;
     }
+    .zoomHelp {
+        visibility: hidden;
+        display: inline-block;
+        white-space: nowrap;
+        position: absolute;
+
+        top: 1rem;
+        margin: 0 0 0 4.5rem;
+        padding: 0.5rem;
+
+        background-color: hsl(320, 50%, 30%) !important;
+        color: white;
+        box-shadow: 2px 2px 8px #888888;
+        border-radius: 0.3rem;
+
+        font-family: Arial, sans-serif;
+    }
+    .zoomHelp:after {
+        top: 0.5rem;
+        left: -0.5rem;
+        bottom: auto;
+        border-width: 10px 10px 10px 0;
+        border-color: transparent hsl(320, 50%, 30%);
+
+
+        content: "";
+        position: absolute;
+        border-style: solid;
+        display: block;
+        width: 0;
+    }
+
+
     #plot {
         width: 99vh;
     }
@@ -126,56 +158,56 @@
     }
 
     @-webkit-keyframes bounce {
-        from, 4%, 11%, 16%, 20%, to {
+        from, 8%, 22%,  32%,  40%, to {
             -webkit-animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
             animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
             -webkit-transform: translate3d(0,0,0);
             transform: translate3d(0,0,0);
         }
 
-        8%, 9% {
+        16%, 18% {
             -webkit-animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
             animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
             -webkit-transform: translate3d(0, 0.3rem, 0);
             transform: translate3d(0, 0.3rem, 0);
         }
 
-        14% {
+         28% {
             -webkit-animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
             animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
             -webkit-transform: translate3d(0, -0.5rem, 0);
             transform: translate3d(0, -0.5rem, 0);
         }
 
-        18% {
+         36% {
             -webkit-transform: translate3d(0,-0.3rem,0);
             transform: translate3d(0,-0.3rem,0);
         }
     }
 
     @keyframes bounce {
-        from, 4%, 11%, 16%, 20%, to {
+        from, 8%, 22%,  32%,  40%, to {
             -webkit-animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
             animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
             -webkit-transform: translate3d(0,0,0);
             transform: translate3d(0,0,0);
         }
 
-        8%, 9% {
+        16%, 18% {
             -webkit-animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
             animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
             -webkit-transform: translate3d(0, 0.3rem, 0);
             transform: translate3d(0, 0.3rem, 0);
         }
 
-        14% {
+         28% {
             -webkit-animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
             animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
             -webkit-transform: translate3d(0, -0.5rem, 0);
             transform: translate3d(0, -0.5rem, 0);
         }
 
-        18% {
+         36% {
             -webkit-transform: translate3d(0,-0.3rem,0);
             transform: translate3d(0,-0.3rem,0);
         }
@@ -188,6 +220,7 @@
 <div class="zoomControls">
     <div class="zoom zoomIn"><div class="icon">+</div></div>
     <div class="zoom zoomOut"><div class="icon">-</div></div>
+    <div class="zoomHelp">Deselect to get back to business.</div>
 </div>
 
 <div class="loadingModal">

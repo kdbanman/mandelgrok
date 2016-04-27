@@ -1,5 +1,7 @@
 
 
+// SETTINGS
+var MAIN_PIXEL_SIZE = 2;
 
 // GLOBAL STACICS AND STATE
 var POINT_STROKE_COLOR = 'hsl(320,80%,30%)';
@@ -230,7 +232,7 @@ var renderComplexPlane = (function () {
             });
 
             loadingModal.show();
-            cancelAsync = renderMandelbrot(canvas, boundary, 2, function (img) {
+            cancelAsync = renderMandelbrot(canvas, boundary, MAIN_PIXEL_SIZE, function (img) {
                 currImg = img;
                 ctx.putImageData(currImg, 0, 0);
                 renderSequences(canvas, sequences, boundary, ctx);
@@ -341,8 +343,23 @@ var resize = (function () {
 // EVENT LISTENERS
 var zoomInElement = $('.zoomIn');
 var zoomOutElement = $('.zoomOut');
+var zoomHelpShown = false;
 
 var updateZoomUI = function () {
+    var zoomHelp = $(".zoomHelp");
+    if (!zoomHelpShown) {
+        zoomHelp.css("visibility", "visible");
+        zoomHelp.hide().fadeIn(400);
+        setTimeout(function () {
+            zoomHelp.fadeOut(2300, function () {
+                zoomHelp.css("visibility", "hidden");
+            });
+        }, 4400);
+
+        zoomHelpShown = true;
+    }
+
+
     if (zoomInElement.hasClass('zoomSelected') || zoomOutElement.hasClass('zoomSelected')) {
         $('.zoomControls').addClass('zoomSelected');
     } else {

@@ -56,8 +56,6 @@ var MandelCoord = function (re, im, maxIter) {
     this.divergent = currIter < maxIter;
     this.escaped = this.divergent ? currIter : undefined;
     this.length = currIter;
-
-    console.log(this.divergent);
 };
 
 
