@@ -58,7 +58,17 @@ var getComplexPosition = function (canvasCoord) {
     };
 };
 
+var getReticleComplexPosition = function () {
+    var canvasCoord = {
+        x: parseFloat($('.outerReticle').css('left')),
+        y: parseFloat($('.outerReticle').css('top'))
+    };
+
+    return getComplexPosition(canvasCoord);
+};
+
 var moveReticle = function (complexPosition) {
+
     addAndRenderSequence(complexPosition.x, complexPosition.y);
 
     var canvasCoord = complexPositionToCanvasCoord(complexPosition);
@@ -117,91 +127,74 @@ var resize = (function () {
     return guardedResize;
 }());
 
-
-
-// EVENT LISTENERS
-var zoomInElement = $('.zoomIn');
-var zoomOutElement = $('.zoomOut');
-var zoomHelpShown = false;
-
-var updateZoomUI = function () {
-    var zoomHelp = $(".zoomHelp");
-    if (!zoomHelpShown) {
-        zoomHelp.css("visibility", "visible");
-        zoomHelp.hide().fadeIn(400);
-        setTimeout(function () {
-            zoomHelp.fadeOut(2300, function () {
-                zoomHelp.css("visibility", "hidden");
-            });
-        }, 4400);
-
-        zoomHelpShown = true;
-    }
-
-
-    if (zoomInElement.hasClass('zoomSelected') || zoomOutElement.hasClass('zoomSelected')) {
-        $('.zoomControls').addClass('zoomSelected');
-    } else {
-        $('.zoomControls').removeClass('zoomSelected');
-    }
-
-    if (zoomInElement.hasClass('zoomSelected')) {
-        $('#plot_canvas').css('cursor', 'zoom-in');
-    } else if (zoomOutElement.hasClass('zoomSelected')) {
-        $('#plot_canvas').css('cursor', 'zoom-out');
-    } else {
-        $('#plot_canvas').css('cursor', 'default');
-    }
-};
-
-function zoomIn(zoomCenter) {
+var zoomIn = function (zoomCenter) {
     var currentBoundWidth = x_max - x_min;
     var currentBoundHeight = y_max - y_min;
-    var newBoundWidth, newBoundHeight;
 
-    if (zoomInElement.hasClass('zoomSelected')) {
+    var newBoundWidth = currentBoundWidth / 2;
+    var newBoundHeight = currentBoundHeight / 2;
 
+    zoom(zoomCenter, newBoundWidth, newBoundHeight);
+};
 
-        newBoundWidth = currentBoundWidth / 2;
-        newBoundHeight = currentBoundHeight / 2;
-    } else if (zoomOutElement.hasClass('zoomSelected')) {
-        zoomCenter = {
-            x: x_min + currentBoundWidth / 2,
-            y: y_min + currentBoundHeight / 2
-        };
-        newBoundWidth = currentBoundWidth * 2;
-        newBoundHeight = currentBoundHeight * 2;
-    }
+var zoomOut = function (zoomCenter) {
+    var currentBoundWidth = x_max - x_min;
+    var currentBoundHeight = y_max - y_min;
 
+    var newBoundWidth = currentBoundWidth * 2;
+    var newBoundHeight = currentBoundHeight * 2;
+
+    zoom(zoomCenter, newBoundWidth, newBoundHeight);
+};
+
+var zoom = function (zoomCenter, newBoundWidth, newBoundHeight) {
     x_min = zoomCenter.x - newBoundWidth / 2;
     x_max = zoomCenter.x + newBoundWidth / 2;
     y_min = zoomCenter.y - newBoundHeight / 2;
     y_max = zoomCenter.y + newBoundHeight / 2;
 
+    moveReticle(zoomCenter);
+
     render(sequenceQueue);
-}
+};
+
+
+
+// EVENT LISTENERS
+var zoomInElement = $('.zoomIn');
+var zoomOutElement = $('.zoomOut');
 
 $("#plot_canvas").on('mousedown', function (event) {
     sequenceQueue.clear();
     var mousePosition = getMouseComplexPlanePosition(event, x_min, x_max, y_min, y_max);
     moveReticle(mousePosition);
-    $('.outerReticle').triggerHandler('mousedown', event);
+    $('.outerReticle').trigger('mouseenter');
+    $('.outerReticle').trigger('mousedown', event);
 });
 
-$(window).resize(resize);
+$('.zoom').on('mouseenter', function () {
+    $('.outerReticle').addClass('dragging');
+});
+$('.zoom').on('mouseleave', function () {
+    $('.outerReticle').removeClass('dragging');
+});
 
+zoomInElement.on('mousedown', function () {
+    zoomInElement.addClass('zoomSelected');
+});
 zoomInElement.click(function () {
-    zoomInElement.toggleClass('zoomSelected');
-    zoomOutElement.removeClass('zoomSelected');
+    zoomIn(getReticleComplexPosition());
+    zoomInElement.removeClass('zoomSelected');
+});
 
-    updateZoomUI();
+zoomOutElement.on('mousedown', function () {
+    zoomOutElement.addClass('zoomSelected');
 });
 zoomOutElement.click(function () {
-    zoomOutElement.toggleClass('zoomSelected');
-    zoomInElement.removeClass('zoomSelected');
-
-    updateZoomUI();
+    zoomOut(getReticleComplexPosition());
+    zoomOutElement.removeClass('zoomSelected');
 });
+
 
 $(".outerReticle").on('drag', function (e) {
     var newOffset = $(this).position();
@@ -209,6 +202,9 @@ $(".outerReticle").on('drag', function (e) {
     var complexPosition = getComplexPosition(canvasCoord);
     addAndRenderSequence(complexPosition.x, complexPosition.y);
 });
+
+$(window).resize(resize);
+
 
 
 // GO!

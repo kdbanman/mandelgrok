@@ -14,8 +14,6 @@ var HOME_BOUNDARY = [-1.6, 0.6, -1.1, 1.1];
 
 // APPLICATION STATE
 
-var reticlePoint = {x: 0, y: 0};
-
 // sequences to plot
 var sequenceQueue = new MRUQueue(30);
 
