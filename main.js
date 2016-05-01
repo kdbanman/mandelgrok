@@ -46,14 +46,11 @@ var complexPositionToCanvasCoord = function (complexPosition) {
     return {x: x, y: y};
 };
 
-var getReticleComplexPosition = function () {
+var getComplexPosition = function (canvasCoord) {
     var canv = document.getElementById("plot_canvas");
 
-    var x = $('.outerReticle').css('left');
-    var y = $('.outerReticle').css('right');
-
-    var translatedX = (x_max - x_min) * x / canv.width + x_min;
-    var translatedY = (y_max - y_min) * (canv.height - y) / canv.height+ y_min;
+    var translatedX = (x_max - x_min) * canvasCoord.x / canv.width + x_min;
+    var translatedY = (y_max - y_min) * (canv.height - canvasCoord.y) / canv.height+ y_min;
 
     return {
         x: translatedX,
@@ -162,12 +159,13 @@ document.getElementById("plot_canvas").addEventListener('click', function (event
         return;
     }
 
+    var zoomCenter = getMouseComplexPlanePosition(event, x_min, x_max, y_min, y_max);
     var currentBoundWidth = x_max - x_min;
     var currentBoundHeight = y_max - y_min;
-    var zoomCenter, newBoundWidth, newBoundHeight;
+    var newBoundWidth, newBoundHeight;
 
     if (zoomInElement.hasClass('zoomSelected')) {
-        zoomCenter = getMouseComplexPlanePosition(event, x_min, x_max, y_min, y_max);
+        
 
         newBoundWidth = currentBoundWidth / 2;
         newBoundHeight = currentBoundHeight / 2;
@@ -201,6 +199,13 @@ zoomOutElement.click(function () {
     zoomInElement.removeClass('zoomSelected');
 
     updateZoomUI();
+});
+
+$(".outerReticle").on('drag', function (e) {
+    var newOffset = $(this).position();
+    var canvasCoord = {x: newOffset.left, y: newOffset.top};
+    var complexPosition = getComplexPosition(canvasCoord);
+    addAndRenderSequence(complexPosition.x, complexPosition.y);
 });
 
 

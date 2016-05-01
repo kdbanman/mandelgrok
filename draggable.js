@@ -1,32 +1,41 @@
 
 
 var draggable = $('.draggable');
+var currentlyDragged = null;
 
+
+var dragElement = function (e) {
+    if (currentlyDragged == null) {
+        return;
+    }
+
+    var dragDelta = {
+        x: e.pageX - currentlyDragged.prop("dragMouseStart").pageX,
+        y: e.pageY - currentlyDragged.prop("dragMouseStart").pageY
+    };
+    var newOffset = {
+        top: currentlyDragged.prop("dragOffsetStart").top + dragDelta.y,
+        left: currentlyDragged.prop("dragOffsetStart").left + dragDelta.x
+    };
+    currentlyDragged.offset(newOffset);
+    currentlyDragged.trigger('drag');
+};
 var startDragging = function (e) {
-    var element = $(this);
-    element.addClass("dragging");
-    element.prop("dragOffsetStart", {
-        top: element.offset().top,
-        left: element.offset().left});
-    element.prop("dragMouseStart", {
+    currentlyDragged = $(this);
+    currentlyDragged.addClass("dragging");
+    currentlyDragged.prop("dragOffsetStart", {
+        top: currentlyDragged.offset().top,
+        left: currentlyDragged.offset().left});
+    currentlyDragged.prop("dragMouseStart", {
         pageX: e.pageX,
         pageY: e.pageY});
-};
-var dragElement = function (e) {
-    var element = $(this);
-    if (element.hasClass("dragging")) {
-        var dragDelta = {
-            x: e.pageX - element.prop("dragMouseStart").pageX,
-            y: e.pageY - element.prop("dragMouseStart").pageY
-        };
-        element.offset({
-            top: element.prop("dragOffsetStart").top + dragDelta.y,
-            left: element.prop("dragOffsetStart").left + dragDelta.x
-        });
-    }
+
+    $(document).on("mousemove", dragElement);
 };
 var stopDragging = function (e) {
     draggable.removeClass("dragging");
+    currentlyDragged = null;
+    $(document).off("mousemove", dragElement);
 
     // Clear text selection.  When draggable elements "collide", empty content gets selected and bugs out the drag.
     if ( document.selection ) {
@@ -37,7 +46,5 @@ var stopDragging = function (e) {
 };
 
 draggable.on("mousedown", startDragging);
-draggable.on("mousemove", dragElement);
-draggable.on("mouseleave", stopDragging);
-draggable.on("mouseenter", stopDragging);
+$(document).on("mouseup", stopDragging);
 draggable.on("mouseup", stopDragging);
