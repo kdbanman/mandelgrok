@@ -47,44 +47,47 @@
         height: 99vh;
     }
 
-    .reticle {
+    .outerReticle {
+        top: 400px;
+        left: 400px;
+
         position: absolute;
-        top: 200px;
-        left: 200px;
+        display: flex;
+        justify-content: center;
+
+        width: 1.6rem;
+        height: 1.6rem;
+        margin: -0.8rem 0 0 -0.8rem;
+        padding: 0;
+        border-radius: 0.8rem;
+        box-sizing: border-box;
 
         opacity: 0.5;
-        background-color: white;
+        border: 0.2rem solid white;
+    }
+    .middleReticle {
+        align-self: center;
 
-        border-radius: 0.5rem;
-        width: 1rem;
-        height: 1rem;
-        margin: -0.5rem 0 0 -0.5rem;
+        width: 1.3rem;
+        height: 1.3rem;
+        margin: 0;
         padding: 0;
+        border-radius: 0.65rem;
+        box-sizing: border-box;
+
+        border: 0.2rem solid hsl(320, 50%, 30%);
     }
-    .reticle:before, .reticle:after {
-        content: '';
+    .innerReticle {
+        align-self: center;
 
-        position: absolute;
-        top: 1rem;
-        left: 1rem;
-        margin: -0.55rem 0 0 -0.93rem;
-
-        opacity: 0.8;
-        background-color: hsl(320, 50%, 30%);
-
-        width: 0.65rem;
-        height: 0.1rem;
+        width: 0.9rem;
+        height: 0.9rem;
+        margin: 0;
         padding: 0;
-    }
-    .reticle:before {
-        -ms-transform: rotate(135deg);
-        -webkit-transform: rotate(135deg);
-        transform: rotate(135deg);
-    }
-    .reticle:after {
-        -ms-transform: rotate(45deg);
-        -webkit-transform: rotate(45deg);
-        transform: rotate(45deg);
+        border-radius: 0.45rem;
+        box-sizing: border-box;
+
+        border: 0.1rem solid white;
     }
 
     .zoomControls {
@@ -203,7 +206,11 @@
     <canvas id="plot_canvas">
         Your browser does not support the HTML5 canvas tag.
     </canvas>
-    <div class="reticle"></div>
+    <div class="outerReticle">
+        <div class="middleReticle">
+            <div class="innerReticle"></div>
+        </div>
+    </div>
 </div>
 
 <div class="fullheight_container" id="dist">
