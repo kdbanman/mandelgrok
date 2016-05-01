@@ -46,6 +46,47 @@
         display: inline-block;
         height: 99vh;
     }
+
+    .reticle {
+        position: absolute;
+        top: 200px;
+        left: 200px;
+
+        opacity: 0.5;
+        background-color: white;
+
+        border-radius: 0.5rem;
+        width: 1rem;
+        height: 1rem;
+        margin: -0.5rem 0 0 -0.5rem;
+        padding: 0;
+    }
+    .reticle:before, .reticle:after {
+        content: '';
+
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        margin: -0.55rem 0 0 -0.93rem;
+
+        opacity: 0.8;
+        background-color: hsl(320, 50%, 30%);
+
+        width: 0.65rem;
+        height: 0.1rem;
+        padding: 0;
+    }
+    .reticle:before {
+        -ms-transform: rotate(135deg);
+        -webkit-transform: rotate(135deg);
+        transform: rotate(135deg);
+    }
+    .reticle:after {
+        -ms-transform: rotate(45deg);
+        -webkit-transform: rotate(45deg);
+        transform: rotate(45deg);
+    }
+
     .zoomControls {
         position: absolute;
         top: 0.5rem;
@@ -78,24 +119,10 @@
     .zoom:hover {
         background-color: hsla(320, 50%, 30%, 0.1);
     }
-    .zoomSelected {
-        opacity: 1 !important;
-    }
     .zoomSelected .zoomSelected {
         background-color: hsl(320, 50%, 30%) !important;
         color: white;
         box-shadow: 2px 2px 8px #888888;
-
-        -webkit-animation-name: bounce;
-        animation-name: bounce;
-        -webkit-transform-origin: center bottom;
-        transform-origin: center bottom;
-        -webkit-animation-iteration-count: infinite;
-        animation-iteration-count: infinite;
-        -webkit-animation-duration: 2.5s;
-        animation-duration: 2.5s;
-        -webkit-animation-fill-mode: both;
-        animation-fill-mode: both;
     }
     .zoomHelp {
         visibility: hidden;
@@ -157,62 +184,6 @@
         padding: 0;
     }
 
-    @-webkit-keyframes bounce {
-        from, 8%, 22%,  32%,  40%, to {
-            -webkit-animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
-            animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
-            -webkit-transform: translate3d(0,0,0);
-            transform: translate3d(0,0,0);
-        }
-
-        16%, 18% {
-            -webkit-animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
-            animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
-            -webkit-transform: translate3d(0, 0.3rem, 0);
-            transform: translate3d(0, 0.3rem, 0);
-        }
-
-         28% {
-            -webkit-animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
-            animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
-            -webkit-transform: translate3d(0, -0.5rem, 0);
-            transform: translate3d(0, -0.5rem, 0);
-        }
-
-         36% {
-            -webkit-transform: translate3d(0,-0.3rem,0);
-            transform: translate3d(0,-0.3rem,0);
-        }
-    }
-
-    @keyframes bounce {
-        from, 8%, 22%,  32%,  40%, to {
-            -webkit-animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
-            animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
-            -webkit-transform: translate3d(0,0,0);
-            transform: translate3d(0,0,0);
-        }
-
-        16%, 18% {
-            -webkit-animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
-            animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
-            -webkit-transform: translate3d(0, 0.3rem, 0);
-            transform: translate3d(0, 0.3rem, 0);
-        }
-
-         28% {
-            -webkit-animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
-            animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
-            -webkit-transform: translate3d(0, -0.5rem, 0);
-            transform: translate3d(0, -0.5rem, 0);
-        }
-
-         36% {
-            -webkit-transform: translate3d(0,-0.3rem,0);
-            transform: translate3d(0,-0.3rem,0);
-        }
-    }
-
 </style>
 </head>
 <body>
@@ -232,6 +203,7 @@
     <canvas id="plot_canvas">
         Your browser does not support the HTML5 canvas tag.
     </canvas>
+    <div class="reticle"></div>
 </div>
 
 <div class="fullheight_container" id="dist">
@@ -248,7 +220,9 @@
 
 <script src="jquery-2.1.1.min.js"></script>
 <script src="util.js"></script>
-<script src="converge.js"></script>
+<script src="global.js"></script>
+<script src="render.js"></script>
+<script src="main.js"></script>
 
 </body>
 </html>
