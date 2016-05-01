@@ -15,7 +15,7 @@ var addAndRenderSequence = function (x, y) {
     render(sequenceQueue);
 };
 
-var getMouseComplexPlanePosition = function (evt, x_min, x_max, y_min, y_max) {
+var getMouseComplexPlanePosition = function (evt) {
     var canv = document.getElementById("plot_canvas");
     var rect = canv.getBoundingClientRect();
 
@@ -29,6 +29,46 @@ var getMouseComplexPlanePosition = function (evt, x_min, x_max, y_min, y_max) {
         x: translatedX,
         y: translatedY
     };
+};
+
+var complexPositionToCanvasCoord = function (complexPosition) {
+    var canv = document.getElementById("plot_canvas");
+
+    var viewportComplexX = complexPosition.x - x_min;
+    var viewportComplexY = complexPosition.y - y_min;
+
+    var viewportComplexWidth = x_max - x_min;
+    var viewportComplexHeight = y_max - y_min;
+
+    var x = viewportComplexX * canv.width / viewportComplexWidth;
+    var y = canv.height - viewportComplexY * canv.height / viewportComplexHeight;
+
+    return {x: x, y: y};
+};
+
+var getReticleComplexPosition = function () {
+    var canv = document.getElementById("plot_canvas");
+
+    var x = $('.outerReticle').css('left');
+    var y = $('.outerReticle').css('right');
+
+    var translatedX = (x_max - x_min) * x / canv.width + x_min;
+    var translatedY = (y_max - y_min) * (canv.height - y) / canv.height+ y_min;
+
+    return {
+        x: translatedX,
+        y: translatedY
+    };
+};
+
+var moveReticle = function (complexPosition) {
+    addAndRenderSequence(complexPosition.x, complexPosition.y);
+
+    var canvasCoord = complexPositionToCanvasCoord(complexPosition);
+    $('.outerReticle').css({
+        left: "" + canvasCoord.x + "px",
+        top: "" + canvasCoord.y + "px"
+    });
 };
 
 // fill container divs with canvas
@@ -117,13 +157,6 @@ var updateZoomUI = function () {
     }
 };
 
-document.getElementById("plot_canvas").addEventListener('mousemove', function (event) {
-    if (!(zoomInElement.hasClass('zoomSelected') || zoomOutElement.hasClass('zoomSelected'))) {
-        var complexPosition = getMouseComplexPlanePosition(event, x_min, x_max, y_min, y_max);
-        addAndRenderSequence(complexPosition.x, complexPosition.y);
-    }
-});
-
 document.getElementById("plot_canvas").addEventListener('click', function (event) {
     if (!(zoomInElement.hasClass('zoomSelected') || zoomOutElement.hasClass('zoomSelected'))) {
         return;
@@ -170,33 +203,8 @@ zoomOutElement.click(function () {
     updateZoomUI();
 });
 
-var minimap = $('#minimap');
-minimap.dragging = false;
-minimap.on("mousemove", function (e) {
-    if (minimap.dragging) {
-        var dragDelta = {
-            x: e.pageX - minimap.dragMouseStart.pageX,
-            y: e.pageY - minimap.dragMouseStart.pageY
-        };
-        minimap.offset({
-            top: minimap.dragOffsetStart.top + dragDelta.y,
-            left: minimap.dragOffsetStart.left + dragDelta.x
-        });
-    }
-});
-minimap.on("mousedown", function (e) {
-    minimap.dragging = true;
-    minimap.dragOffsetStart = {
-        top: minimap.offset().top,
-        left: minimap.offset().left};
-    minimap.dragMouseStart = {
-        pageX: e.pageX,
-        pageY: e.pageY}
-});
-minimap.on("mouseup", function () {
-    minimap.dragging = false;
-});
-
 
 // GO!
 resize();
+moveReticle({x: 0, y: 0});
+$('.outerReticle').css('visibility', 'visible');

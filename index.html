@@ -13,7 +13,7 @@
         background-color: #111;
     }
     .loadingBackground {
-        z-index: 2;
+        z-index: 10;
         position: absolute;
         height: 100%;
         width: 100%;
@@ -24,7 +24,7 @@
         background-color: #666666;
     }
     .loadingText {
-        z-index: 3;
+        z-index: 11;
 
         position: absolute;
         top: 30%;
@@ -43,14 +43,15 @@
         text-align: center;
     }
     .fullheight_container {
+        position: relative;
         display: inline-block;
         height: 99vh;
     }
 
     .outerReticle {
-        top: 400px;
-        left: 400px;
+        visibility: hidden;
 
+        z-index: 3;
         position: absolute;
         display: flex;
         justify-content: center;
@@ -64,6 +65,10 @@
 
         opacity: 0.5;
         border: 0.2rem solid white;
+        box-shadow: 2px 2px 8px #888888;
+    }
+    .outerReticle:hover {
+        opacity: 0.8;
     }
     .middleReticle {
         align-self: center;
@@ -91,6 +96,7 @@
     }
 
     .zoomControls {
+        z-index: 2;
         position: absolute;
         top: 0.5rem;
         left: 1rem;
@@ -167,6 +173,7 @@
         width: calc(99vh* 0.3);
     }
     #minimap {
+        z-index: 5;
         position: absolute;
         margin: 1rem;
         bottom: 0;
@@ -176,11 +183,15 @@
 
         opacity: 0.7;
         box-shadow: 2px 2px 8px #888888;
-
-        cursor: move;
     }
     #minimap:hover {
         opacity: 1;
+    }
+    .draggable {
+        cursor: move;
+    }
+    .dragging {
+        cursor: none;
     }
     canvas {
         margin: 0;
@@ -206,7 +217,7 @@
     <canvas id="plot_canvas">
         Your browser does not support the HTML5 canvas tag.
     </canvas>
-    <div class="outerReticle">
+    <div class="outerReticle draggable">
         <div class="middleReticle">
             <div class="innerReticle"></div>
         </div>
@@ -219,13 +230,15 @@
     </canvas>
 </div>
 
-<div class="minimap_container" id="minimap">
+<div class="minimap_container draggable" id="minimap">
     <canvas id="minimap_canvas">
         Your browser does not support the HTML5 canvas tag.
     </canvas>
 </div>
 
 <script src="jquery-2.1.1.min.js"></script>
+
+<script src="draggable.js"></script>
 <script src="util.js"></script>
 <script src="global.js"></script>
 <script src="render.js"></script>
