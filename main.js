@@ -154,18 +154,13 @@ var updateZoomUI = function () {
     }
 };
 
-document.getElementById("plot_canvas").addEventListener('click', function (event) {
-    if (!(zoomInElement.hasClass('zoomSelected') || zoomOutElement.hasClass('zoomSelected'))) {
-        return;
-    }
-
-    var zoomCenter = getMouseComplexPlanePosition(event, x_min, x_max, y_min, y_max);
+function zoomIn(zoomCenter) {
     var currentBoundWidth = x_max - x_min;
     var currentBoundHeight = y_max - y_min;
     var newBoundWidth, newBoundHeight;
 
     if (zoomInElement.hasClass('zoomSelected')) {
-        
+
 
         newBoundWidth = currentBoundWidth / 2;
         newBoundHeight = currentBoundHeight / 2;
@@ -184,6 +179,13 @@ document.getElementById("plot_canvas").addEventListener('click', function (event
     y_max = zoomCenter.y + newBoundHeight / 2;
 
     render(sequenceQueue);
+}
+
+$("#plot_canvas").on('mousedown', function (event) {
+    sequenceQueue.clear();
+    var mousePosition = getMouseComplexPlanePosition(event, x_min, x_max, y_min, y_max);
+    moveReticle(mousePosition);
+    $('.outerReticle').triggerHandler('mousedown', event);
 });
 
 $(window).resize(resize);

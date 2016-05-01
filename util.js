@@ -133,3 +133,8 @@ MRUQueue.prototype.forEach = function (fun) {
         fun(this.queue[i], i);
     }
 };
+
+MRUQueue.prototype.clear = function () {
+    this.queue = [];
+    this.length = 0;
+};

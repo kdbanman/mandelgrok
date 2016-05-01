@@ -20,7 +20,13 @@ var dragElement = function (e) {
     currentlyDragged.offset(newOffset);
     currentlyDragged.trigger('drag');
 };
-var startDragging = function (e) {
+var startDragging = function (eDefault, eTriggered) {
+
+    var e = eDefault;
+    if (e.pageX == null) {
+        e = eTriggered
+    }
+
     currentlyDragged = $(this);
     currentlyDragged.addClass("dragging");
     currentlyDragged.prop("dragOffsetStart", {
