@@ -85,7 +85,7 @@ var resize = (function () {
     var anotherResizeQueued = false;
     var asyncCancel;
 
-    var guardedResize = function () {
+    var guardedResize = function (asyncDone) {
         if ($(window).height() < $('#minimap').height() * 1.3) {
             return;
         }
@@ -110,16 +110,22 @@ var resize = (function () {
             canvas.attr('width', container.width());
         };
 
+        var reticlePos = getReticleComplexPosition();
+
         fillContainerWithCanvas($('#plot_canvas'), $('#plot'));
         fillContainerWithCanvas($('#dist_canvas'), $('#dist'));
         fillContainerWithCanvas($('#minimap_canvas'), $('#minimap'));
+
+        moveReticle(reticlePos);
 
         asyncCancel = render(sequenceQueue, true, function () {
             resizing = false;
 
             if (anotherResizeQueued) {
                 anotherResizeQueued = false;
-                guardedResize();
+                guardedResize(asyncDone);
+            } else if (typeof asyncDone === 'function') {
+                asyncDone();
             }
         });
     };
@@ -197,6 +203,8 @@ zoomOutElement.click(function () {
 
 
 $(".outerReticle").on('drag', function (e) {
+    $('.help').fadeOut(300);
+    
     var newOffset = $(this).position();
     var canvasCoord = {x: newOffset.left, y: newOffset.top};
     var complexPosition = getComplexPosition(canvasCoord);
@@ -208,6 +216,13 @@ $(window).resize(resize);
 
 
 // GO!
-resize();
-moveReticle({x: 0, y: 0});
-$('.outerReticle').css('visibility', 'visible');
+resize(function () {
+
+    moveReticle({x: 0, y: 0});
+    $('.outerReticle').css('visibility', 'visible');
+
+
+    setTimeout(function () {
+        $('.help').fadeIn(300);
+    }, 1000);
+});

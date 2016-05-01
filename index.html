@@ -46,6 +46,7 @@
         position: relative;
         display: inline-block;
         height: 99vh;
+        overflow: visible;
     }
 
     .outerReticle {
@@ -137,6 +138,40 @@
         box-shadow: 2px 2px 8px #888888;
     }
 
+    .help {
+        z-index: 9;
+
+        display: none;
+        white-space: nowrap;
+        position: absolute;
+        box-sizing: border-box;
+
+        top: 50%;
+        left: 80%;
+        margin: -1.1rem 0 0 0;
+        padding: 0.5rem;
+
+        background-color: hsl(320, 50%, 30%) !important;
+        color: white;
+        box-shadow: 2px 2px 8px #888888;
+        border-radius: 0.3rem;
+
+        font-family: Arial, sans-serif;
+    }
+    .help:after {
+        top: 0.5rem;
+        left: -0.5rem;
+        bottom: auto;
+        border-width: 10px 10px 10px 0;
+        border-color: transparent hsl(320, 50%, 30%);
+
+
+        content: "";
+        position: absolute;
+        border-style: solid;
+        display: block;
+        width: 0;
+    }
 
     #plot {
         width: 99vh;
@@ -193,6 +228,7 @@
             <div class="innerReticle"></div>
         </div>
     </div>
+    <div class="help">Your turn.</div>
 </div>
 
 <div class="fullheight_container" id="dist">
