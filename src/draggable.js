@@ -20,6 +20,7 @@ var dragElement = function (e) {
     currentlyDragged.offset(newOffset);
     currentlyDragged.trigger('drag');
 };
+
 var startDragging = function (eDefault, eTriggered) {
 
     var e = eDefault;
@@ -38,6 +39,7 @@ var startDragging = function (eDefault, eTriggered) {
 
     $(document).on("mousemove", dragElement);
 };
+
 var stopDragging = function (e) {
     draggable.removeClass("dragging");
     currentlyDragged = null;
@@ -52,5 +54,5 @@ var stopDragging = function (e) {
 };
 
 draggable.on("mousedown", startDragging);
-$(document).on("mouseup", stopDragging);
 draggable.on("mouseup", stopDragging);
+$(document).on("mouseup", stopDragging);
