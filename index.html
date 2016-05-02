@@ -180,9 +180,13 @@
         font-family: Arial, sans-serif;
     }
     .skipMessage {
-        top: 1.4rem;
+        opacity: 0.6;
+        top: 0.6rem;
         left: 100%;
-        margin: 0 0 0 -11rem;
+        margin: 0 0 0 -10.2rem;
+    }
+    .skipMessage:hover {
+        opacity: 1;
     }
     .helpMessage {
         top: 50%;
@@ -259,7 +263,7 @@
         </div>
     </div>
     <div class="message helpMessage">Your turn.</div>
-    <div class="message skipMessage">Skip demo <span class="skipButton">>></span></div>
+    <div class="message skipMessage">Skip demo? <span class="skipButton">>></span></div>
 </div>
 
 <div class="fullheight_container" id="dist">
