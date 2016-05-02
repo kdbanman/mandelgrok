@@ -167,7 +167,7 @@ var zoom = function (zoomCenter, newBoundWidth, newBoundHeight) {
 var showDemo = function (asyncDone) {
     var step = -1;
     var showNextStep = function () {
-        step += 1;
+        step += DEMO_SPEED;
         if (step < demoPath.length) {
             moveReticle(demoPath[step]);
             requestAnimationFrame(showNextStep);
@@ -192,10 +192,10 @@ var initialize = function () {
         $('.outerReticle').trigger('mousedown', event);
     });
 
-    $('.zoom').on('mouseenter', function () {
+    $('.zoomButton').on('mouseenter', function () {
         $('.outerReticle').addClass('dragging');
     });
-    $('.zoom').on('mouseleave', function () {
+    $('.zoomButton').on('mouseleave', function () {
         $('.outerReticle').removeClass('dragging');
     });
 
@@ -216,7 +216,7 @@ var initialize = function () {
     });
 
     $(".outerReticle").on('drag', function (e) {
-        $('.help').fadeOut(300);
+        $('.message').fadeOut(300);
 
         var newOffset = $(this).position();
         var canvasCoord = {x: newOffset.left, y: newOffset.top};
@@ -235,13 +235,33 @@ resize(function () {
     setTimeout(function () {
 
         moveReticle({x: 0, y: 0});
-        $('.outerReticle').fadeIn(300).css('display', 'flex');
+        $('.outerReticle').fadeIn(300).css('display', 'flex').addClass('dragging');
+        $('.skipMessage').fadeIn(300);
+        $('.skipButton').click(function () {
+            var speedUpDemo = function () {
+                DEMO_SPEED += Math.max(2, Math.floor(DEMO_SPEED * 0.2));
+                if (DEMO_SPEED < 50) {
+                    setTimeout(speedUpDemo, 100);
+                }
+            };
+            speedUpDemo();
+            $(this).fadeOut(300);
+        });
+        
+        var resizeAfterDemo = false;
+        $(window).resize(function () { resizeAfterDemo = true; });
 
         showDemo(function () {
+            
+            if (resizeAfterDemo) {
+                resize();
+            }
 
             sequenceQueue.clear();
             moveReticle({x: 0, y: 0});
-            $('.help').fadeIn(300);
+            $('.helpMessage').fadeIn(300);
+            $('.skipMessage').fadeOut(300);
+            $('.outerReticle').removeClass('dragging');
             
             setTimeout(initialize, 1000);
         });
