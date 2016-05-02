@@ -164,65 +164,86 @@ var zoom = function (zoomCenter, newBoundWidth, newBoundHeight) {
     render(sequenceQueue);
 };
 
+var showDemo = function (asyncDone) {
+    var step = -1;
+    var showNextStep = function () {
+        step += 1;
+        if (step < demoPath.length) {
+            moveReticle(demoPath[step]);
+            requestAnimationFrame(showNextStep);
+        } else {
+            asyncDone();
+        }
+    };
+    showNextStep();
+};
 
 
-// EVENT LISTENERS
-var zoomInElement = $('.zoomIn');
-var zoomOutElement = $('.zoomOut');
 
-$("#plot_canvas").on('mousedown', function (event) {
-    sequenceQueue.clear();
-    var mousePosition = getMouseComplexPlanePosition(event, x_min, x_max, y_min, y_max);
-    moveReticle(mousePosition);
-    $('.outerReticle').trigger('mouseenter');
-    $('.outerReticle').trigger('mousedown', event);
-});
+var initialize = function () {
+    var zoomInElement = $('.zoomIn');
+    var zoomOutElement = $('.zoomOut');
 
-$('.zoom').on('mouseenter', function () {
-    $('.outerReticle').addClass('dragging');
-});
-$('.zoom').on('mouseleave', function () {
-    $('.outerReticle').removeClass('dragging');
-});
+    $("#plot_canvas").on('mousedown', function (event) {
+        sequenceQueue.clear();
+        var mousePosition = getMouseComplexPlanePosition(event, x_min, x_max, y_min, y_max);
+        moveReticle(mousePosition);
+        $('.outerReticle').trigger('mouseenter');
+        $('.outerReticle').trigger('mousedown', event);
+    });
 
-zoomInElement.on('mousedown', function () {
-    zoomInElement.addClass('zoomSelected');
-});
-zoomInElement.click(function () {
-    zoomIn(getReticleComplexPosition());
-    zoomInElement.removeClass('zoomSelected');
-});
+    $('.zoom').on('mouseenter', function () {
+        $('.outerReticle').addClass('dragging');
+    });
+    $('.zoom').on('mouseleave', function () {
+        $('.outerReticle').removeClass('dragging');
+    });
 
-zoomOutElement.on('mousedown', function () {
-    zoomOutElement.addClass('zoomSelected');
-});
-zoomOutElement.click(function () {
-    zoomOut(getReticleComplexPosition());
-    zoomOutElement.removeClass('zoomSelected');
-});
+    zoomInElement.on('mousedown', function () {
+        zoomInElement.addClass('zoomSelected');
+    });
+    zoomInElement.click(function () {
+        zoomIn(getReticleComplexPosition());
+        zoomInElement.removeClass('zoomSelected');
+    });
 
+    zoomOutElement.on('mousedown', function () {
+        zoomOutElement.addClass('zoomSelected');
+    });
+    zoomOutElement.click(function () {
+        zoomOut(getReticleComplexPosition());
+        zoomOutElement.removeClass('zoomSelected');
+    });
 
-$(".outerReticle").on('drag', function (e) {
-    $('.help').fadeOut(300);
-    
-    var newOffset = $(this).position();
-    var canvasCoord = {x: newOffset.left, y: newOffset.top};
-    var complexPosition = getComplexPosition(canvasCoord);
-    addAndRenderSequence(complexPosition.x, complexPosition.y);
-});
+    $(".outerReticle").on('drag', function (e) {
+        $('.help').fadeOut(300);
 
-$(window).resize(resize);
+        var newOffset = $(this).position();
+        var canvasCoord = {x: newOffset.left, y: newOffset.top};
+        var complexPosition = getComplexPosition(canvasCoord);
 
+        addAndRenderSequence(complexPosition.x, complexPosition.y);
+    });
+
+    $(window).resize(resize);
+};
 
 
 // GO!
 resize(function () {
 
-    moveReticle({x: 0, y: 0});
-    $('.outerReticle').css('visibility', 'visible');
-
-
     setTimeout(function () {
-        $('.help').fadeIn(300);
-    }, 1000);
+
+        moveReticle({x: 0, y: 0});
+        $('.outerReticle').fadeIn(300).css('display', 'flex');
+
+        showDemo(function () {
+
+            sequenceQueue.clear();
+            moveReticle({x: 0, y: 0});
+            $('.help').fadeIn(300);
+            
+            setTimeout(initialize, 1000);
+        });
+    }, 800);
 });
