@@ -173,7 +173,7 @@ var showDemo = function (asyncDone) {
         lastStepTime = timestamp;
         if (stepsPerSecond < 50) {
             DEMO_SPEED++;
-        } else if (stepsPerSecond > 100 && DEMO_SPEED > 1) {
+        } else if (stepsPerSecond > 100 && DEMO_SPEED > 1 && !SKIP_DEMO) {
             DEMO_SPEED--;
         }
 
@@ -250,6 +250,7 @@ resize(function () {
         $('.skipMessage').fadeIn(300);
         $('.skipButton').click(function () {
             var speedUpDemo = function () {
+                SKIP_DEMO = true;
                 DEMO_SPEED += Math.max(2, Math.floor(DEMO_SPEED * 0.2));
                 if (DEMO_SPEED < 50) {
                     setTimeout(speedUpDemo, 100);

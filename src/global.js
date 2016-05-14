@@ -5,6 +5,7 @@
 
 var MAIN_PIXEL_SIZE = 2;
 
+var SKIP_DEMO = false;
 var DEMO_SPEED = 1;
 
 var POINT_STROKE_COLOR = 'hsl(320,80%,30%)';
