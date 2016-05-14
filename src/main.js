@@ -172,10 +172,8 @@ var showDemo = function (asyncDone) {
         var stepsPerSecond = DEMO_SPEED * 1000 / stepDelta;
         lastStepTime = timestamp;
         if (stepsPerSecond < 50) {
-            console.log("Demo step rate too small, increasing from " + DEMO_SPEED);
             DEMO_SPEED++;
         } else if (stepsPerSecond > 100 && DEMO_SPEED > 1) {
-            console.log("Demo step rate too large, decreasing from " + DEMO_SPEED);
             DEMO_SPEED--;
         }
 
